@@ -1,0 +1,249 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Divine Indian Festival Color Palette */
+  --bg-midnight: #080B14;
+  --bg-deep: #0B0F1C;
+  --bg-surface: #12182B;
+  --bg-surface-elevated: #1A2238;
+  --bg-glass: rgba(18, 24, 43, 0.72);
+  --bg-glass-card: rgba(22, 30, 54, 0.85);
+  
+  --gold-divine: #FFD700;
+  --gold-primary: #FFB800;
+  --gold-light: #FFE57F;
+  --gold-dark: #C68A00;
+  --gold-glow: rgba(255, 184, 0, 0.35);
+
+  --saffron: #FF671F;
+  --saffron-light: #FF884D;
+  --saffron-glow: rgba(255, 103, 31, 0.4);
+
+  --marigold: #FFA500;
+  --vermilion: #E63946;
+  --lotus-pink: #FF6B8B;
+  --emerald: #10B981;
+  --sky-monsoon: #38BDF8;
+
+  --text-white: #FFFFFF;
+  --text-cream: #FFF7ED;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+
+  --border-gold: rgba(255, 184, 0, 0.3);
+  --border-glass: rgba(255, 255, 255, 0.08);
+
+  --font-serif: 'Cinzel', serif, system-ui;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --shadow-gold: 0 0 25px rgba(255, 184, 0, 0.25);
+  --shadow-divine: 0 0 40px rgba(255, 215, 0, 0.45);
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  background-color: var(--bg-midnight);
+  color: var(--text-cream);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
+
+/* Prevent unwanted pull-to-refresh and selection during gaming on mobile */
+.game-viewport {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+  outline: none;
+  touch-action: manipulation;
+}
+
+/* Typography styles */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFE57F 0%, #FFB800 50%, #FF671F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-divine-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFE57F 40%, #FFB800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphic card styling */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.glass-card-gold {
+  background: linear-gradient(135deg, rgba(26, 34, 58, 0.8) 0%, rgba(18, 24, 43, 0.9) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-gold);
+}
+
+/* Button styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #FFB800 0%, #FF671F 100%);
+  color: #080B14;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 14px 28px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 20px rgba(255, 103, 31, 0.4);
+  transition: all 0.25s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(255, 184, 0, 0.55);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-light);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  transition: all 0.25s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 184, 0, 0.15);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+@keyframes floatScoreUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.85);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -12px) scale(1.12);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-50%, -45px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70px) scale(0.9);
+  }
+}
+
+@keyframes scorePulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.08); text-shadow: 0 0 20px rgba(255, 184, 0, 0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 15px var(--gold-glow); }
+  50% { box-shadow: 0 0 35px var(--gold-glow), 0 0 10px #FF671F; }
+}
+
+@keyframes divineShine {
+  0% { filter: brightness(1) drop-shadow(0 0 5px var(--gold-primary)); }
+  50% { filter: brightness(1.3) drop-shadow(0 0 25px var(--gold-divine)); }
+  100% { filter: brightness(1) drop-shadow(0 0 5px var(--gold-primary)); }
+}
+
+.animate-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.animate-divine {
+  animation: divineShine 2s ease-in-out infinite;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-midnight);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A2238;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 184, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-dark);
+}
