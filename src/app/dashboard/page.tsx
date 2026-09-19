@@ -51,6 +51,69 @@ type DashboardTab = 'overview' | 'temple_run' | 'runner' | 'hillclimb' | 'idol_s
 const VEHICLE_KEYS: VehicleId[] = ['mushika_rath', 'airavata_rover', 'kailash_quad', 'garuda_turbo'];
 const STAGE_KEYS: StageId[] = ['kailash_foothills', 'western_ghats', 'varanasi_dunes', 'svarga_heights'];
 
+function DashboardSkeleton() {
+  return (
+    <div style={{
+      maxWidth: 1320,
+      margin: '0 auto',
+      padding: 'clamp(20px, 3.5vw, 32px) clamp(12px, 3vw, 24px) 80px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 24
+    }}>
+      {/* Top command bar skeleton */}
+      <div className="skeleton-shimmer" style={{
+        height: 120,
+        borderRadius: 24,
+        border: '1.5px solid rgba(255, 184, 0, 0.2)'
+      }} />
+
+      {/* 6 KPI cards skeleton */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
+        gap: 14
+      }}>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="skeleton-shimmer" style={{
+            height: 110,
+            borderRadius: 18,
+            border: '1px solid rgba(255, 255, 255, 0.08)'
+          }} />
+        ))}
+      </div>
+
+      {/* Tabs skeleton */}
+      <div style={{ display: 'flex', gap: 10, overflowX: 'hidden' }}>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="skeleton-shimmer" style={{
+            width: 130,
+            height: 42,
+            borderRadius: 12,
+            flexShrink: 0,
+            border: '1px solid rgba(255, 184, 0, 0.15)'
+          }} />
+        ))}
+      </div>
+
+      {/* 4 Cards skeleton */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
+        gap: 20
+      }}>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="skeleton-shimmer" style={{
+            height: 260,
+            borderRadius: 22,
+            border: '1px solid rgba(255, 255, 255, 0.08)'
+          }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
@@ -73,6 +136,10 @@ export default function DashboardPage() {
     setActiveAvatar(getActiveGaneshaAvatar());
     setSavedDesigns(getSavedGaneshaDesigns());
   }, []);
+
+  if (!isMounted) {
+    return <DashboardSkeleton />;
+  }
 
   // Format chart data for 3D Runner and Temple runs
   const chartData = (sessions && sessions.length > 0 ? [...sessions].reverse() : [
@@ -117,7 +184,7 @@ export default function DashboardPage() {
       weather: 'Frozen Shadows',
       environment: 'Frozen Temple Path',
       completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+      created_at: '2026-09-19T14:30:00.000Z'
     },
     {
       id: 'sess-run-1',
@@ -133,7 +200,7 @@ export default function DashboardPage() {
       weather: 'Sunny',
       environment: 'Festival Street',
       completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
+      created_at: '2026-09-19T13:15:00.000Z'
     },
     {
       id: 'sess-hc-1',
@@ -149,7 +216,7 @@ export default function DashboardPage() {
       weather: 'Alpine Snow',
       environment: 'Kailash Foothills',
       completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString()
+      created_at: '2026-09-19T11:00:00.000Z'
     },
     {
       id: 'sess-run-2',
@@ -165,7 +232,7 @@ export default function DashboardPage() {
       weather: 'Sunset',
       environment: 'Temple Street',
       completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString()
+      created_at: '2026-09-19T09:30:00.000Z'
     }
   ]).filter(s => {
     if (historyFilter === 'all') return true;
@@ -281,7 +348,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right: Quick Launch Button Group FOR ALL 4 GAMES */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div className="command-bar-actions" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {/* Game 1: Temple Run */}
           <Link
             href="/temple-run"
@@ -400,7 +467,7 @@ export default function DashboardPage() {
       </div>
 
       {/* 2. PRIMARY 6 UNIFIED KPI CARDS (COVERING ALL 4 GAMES) */}
-      <div style={{
+      <div className="kpi-cards-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
         gap: 'clamp(10px, 2vw, 16px)'
@@ -575,13 +642,15 @@ export default function DashboardPage() {
       </div>
 
       {/* 3. INTERACTIVE SECTION TABS (6 TABS FOR ALL 4 GAMES) */}
-      <div style={{
+      <div className="no-scrollbar" style={{
         display: 'flex',
         alignItems: 'center',
         gap: 10,
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         paddingBottom: 14,
-        overflowX: 'auto'
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        scrollSnapType: 'x mandatory'
       }}>
         {([
           { id: 'overview', label: '🌟 ALL EXPEDITIONS', desc: 'Unified Overview' },
@@ -596,7 +665,10 @@ export default function DashboardPage() {
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
+              className="touch-scale"
               style={{
+                flexShrink: 0,
+                scrollSnapAlign: 'start',
                 padding: '10px 18px',
                 borderRadius: 12,
                 background: isActive
@@ -981,10 +1053,10 @@ export default function DashboardPage() {
                 <Trophy size={18} color="#FFB800" />
               </div>
 
-              <div style={{ width: '100%', height: 240, minHeight: 240, minWidth: 0 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0, position: 'relative' }}>
                 {isMounted && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                  <ResponsiveContainer width="100%" height={230}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <defs>
                         <linearGradient id="scoreGradOverview" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#FFB800" stopOpacity={0.5} />
@@ -992,8 +1064,8 @@ export default function DashboardPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={11} />
-                      <YAxis stroke="#94A3B8" fontSize={11} />
+                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
                       <Tooltip
                         contentStyle={{ background: '#0E1626', border: '1px solid #FFB800', borderRadius: 8 }}
                         itemStyle={{ color: '#FFE57F' }}
@@ -1278,13 +1350,13 @@ export default function DashboardPage() {
               <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, color: '#FFD700', marginBottom: 14 }}>
                 Score Growth per Run
               </h4>
-              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0, position: 'relative' }}>
                 {isMounted && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                  <ResponsiveContainer width="100%" height={230}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={11} />
-                      <YAxis stroke="#94A3B8" fontSize={11} />
+                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
                       <Tooltip contentStyle={{ background: '#0E1626', border: '1px solid #FFB800', borderRadius: 8 }} />
                       <Area type="monotone" dataKey="score" stroke="#FFB800" strokeWidth={2.5} fill="#FFB800" fillOpacity={0.25} />
                     </AreaChart>
@@ -1303,13 +1375,13 @@ export default function DashboardPage() {
               <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, color: '#FF884D', marginBottom: 14 }}>
                 Vighnas Smashed (Obstacle Clears)
               </h4>
-              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0, position: 'relative' }}>
                 {isMounted && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
+                  <ResponsiveContainer width="100%" height={230}>
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={11} />
-                      <YAxis stroke="#94A3B8" fontSize={11} />
+                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
                       <Tooltip contentStyle={{ background: '#0E1626', border: '1px solid #FF671F', borderRadius: 8 }} />
                       <Bar dataKey="vighnas" fill="#FF671F" radius={[6, 6, 0, 0]} />
                     </BarChart>
@@ -1328,13 +1400,13 @@ export default function DashboardPage() {
               <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, color: '#38BDF8', marginBottom: 14 }}>
                 Distance Traveled (KM)
               </h4>
-              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0, position: 'relative' }}>
                 {isMounted && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
+                  <ResponsiveContainer width="100%" height={230}>
+                    <LineChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={11} />
-                      <YAxis stroke="#94A3B8" fontSize={11} />
+                      <XAxis dataKey="run" stroke="#94A3B8" fontSize={10} tickLine={false} />
+                      <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
                       <Tooltip contentStyle={{ background: '#0E1626', border: '1px solid #38BDF8', borderRadius: 8 }} />
                       <Line type="monotone" dataKey="distanceKm" stroke="#38BDF8" strokeWidth={3} dot={{ fill: '#38BDF8', r: 4 }} />
                     </LineChart>
@@ -1669,22 +1741,26 @@ export default function DashboardPage() {
                         justifyContent: 'center',
                         flexShrink: 0
                       }}>
-                        <GaneshaIdolRenderer
-                          config={design.config}
-                          size="100%"
-                          showPlatform={false}
-                          animateIdle={false}
-                          rotation={0}
-                          tilt={0}
-                          zoom={1.1}
-                        />
+                        {isSelected ? (
+                          <GaneshaIdolRenderer
+                            config={design.config}
+                            size="100%"
+                            showPlatform={false}
+                            animateIdle={false}
+                            rotation={0}
+                            tilt={0}
+                            zoom={1.1}
+                          />
+                        ) : (
+                          <GaneshaAvatar avatarId={design.id} size={56} showBorder={false} />
+                        )}
                       </div>
 
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{design.name}</div>
                         <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{design.config.crown.replace('_', ' ')}</div>
                         <div style={{ fontSize: 10, color: '#FFE57F', marginTop: 4 }}>
-                          {new Date(design.createdAt || Date.now()).toLocaleDateString()}
+                          {new Date(design.createdAt || '2026-09-19').toLocaleDateString()}
                         </div>
                       </div>
                     </div>
@@ -1776,7 +1852,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
+          {/* Desktop Table View (Hidden on mobile < 680px) */}
+          <div className="desktop-history-table" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1.5px solid rgba(255, 255, 255, 0.12)', color: '#94A3B8' }}>
@@ -1852,6 +1929,79 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards View (Visible on mobile < 680px) */}
+          <div className="mobile-history-cards" style={{ display: 'none', flexDirection: 'column', gap: 10 }}>
+            {displaySessions.map((s, idx) => {
+              const game = getGameLabel(s);
+              const runNumber = displaySessions.length - idx;
+
+              return (
+                <div
+                  key={s.id || idx}
+                  style={{
+                    background: 'rgba(11, 15, 28, 0.75)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 14,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 20 }}>{game.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 800, color: game.color, fontSize: 13 }}>{game.name}</div>
+                        <div style={{ fontSize: 10, color: '#94A3B8' }}>{game.sub}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: '#FFE57F' }}>#{runNumber}</span>
+                      <span style={{
+                        fontSize: 10,
+                        color: '#4ADE80',
+                        background: 'rgba(34, 197, 94, 0.15)',
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        fontWeight: 700
+                      }}>
+                        Completed
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: 6,
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    padding: '8px 6px',
+                    borderRadius: 10,
+                    textAlign: 'center'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#94A3B8' }}>SCORE</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#FFD700' }}>{(s.score || 0).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#94A3B8' }}>DISTANCE</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#38BDF8' }}>{((s.distance || 0) / 1000).toFixed(1)}k</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#94A3B8' }}>MODAKS</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#FFA500' }}>{s.modaks_collected || 0} 🍬</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: '#94A3B8' }}>VIGHNAS</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: '#FF671F' }}>{s.vighnas_destroyed || 0}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -1887,7 +2037,7 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        <div style={{
+        <div className="pulse-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
           gap: 16
@@ -1914,6 +2064,52 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Embedded Responsive Media Queries for Mobile Screens */}
+      <style jsx>{`
+        @media (max-width: 680px) {
+          .command-bar-actions {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+          }
+          .command-bar-actions a {
+            padding: 9px 12px !important;
+            font-size: 11px !important;
+            justify-content: center !important;
+          }
+          .command-bar-actions a:last-child {
+            grid-column: span 2 !important;
+          }
+          .kpi-cards-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+          }
+          .kpi-cards-grid > div {
+            padding: 12px 14px !important;
+            border-radius: 14px !important;
+          }
+          .desktop-history-table {
+            display: none !important;
+          }
+          .mobile-history-cards {
+            display: flex !important;
+          }
+          .pulse-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+          }
+        }
+        @media (min-width: 681px) {
+          .desktop-history-table {
+            display: block !important;
+          }
+          .mobile-history-cards {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

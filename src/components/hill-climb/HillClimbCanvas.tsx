@@ -11,7 +11,7 @@ import {
 } from '@/types/hillClimb';
 import { HillClimbEngine, VEHICLE_CONFIGS, STAGE_CONFIGS } from '@/lib/hill-climb/hillClimbEngine';
 import { hillClimbAudio } from '@/lib/hill-climb/hillClimbAudio';
-import { getStoredHillClimbData, saveStoredHillClimbData } from '@/lib/storage';
+import { getStoredHillClimbData, saveStoredHillClimbData, recordGameSession, getStoredProfile } from '@/lib/storage';
 import HillClimbHUD from './HillClimbHUD';
 import HillClimbGarage from './HillClimbGarage';
 import HillClimbGameOver from './HillClimbGameOver';
@@ -161,6 +161,26 @@ export default function HillClimbCanvas() {
               }
             };
           });
+
+          // Record game session for dashboard run history and telemetry
+          try {
+            const profile = getStoredProfile();
+            const stageConf = STAGE_CONFIGS[stageId];
+            recordGameSession({
+              user_id: profile.id,
+              game_mode: 'hillclimb',
+              score: finalScore,
+              distance,
+              duration: Math.max(15, Math.round(distance / 12)),
+              vighnas_destroyed: Math.floor(distance / 80),
+              modaks_collected: coins,
+              powerups_collected: 0,
+              max_combo: 1,
+              weather: stageConf?.name || 'Kailash Foothills',
+              environment: stageConf?.hindiName || 'कैलाश',
+              completed: false
+            });
+          } catch {}
 
           setGameOverData({
             distance,

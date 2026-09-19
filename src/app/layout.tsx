@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body>
         <Navbar />
         <main>{children}</main>
+        <MobileBottomNav />
       </body>
     </html>
   );

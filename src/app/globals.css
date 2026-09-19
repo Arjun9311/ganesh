@@ -258,3 +258,45 @@ button {
     top: 0 !important;
   }
 }
+
+/* Mobile Experience Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area padding for mobile bottom nav on screens <= 768px */
+@media (max-width: 768px) {
+  main {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 10px));
+  }
+}
+
+/* Shimmer animation for rock-solid SSR skeleton */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, rgba(18, 24, 43, 0.8) 25%, rgba(255, 184, 0, 0.12) 50%, rgba(18, 24, 43, 0.8) 75%);
+  background-size: 200% 100%;
+  animation: goldShimmer 1.8s infinite linear;
+}
+
+/* Mobile active tap effect */
+.touch-scale {
+  transition: transform 0.12s ease;
+}
+.touch-scale:active {
+  transform: scale(0.96);
+}
+
