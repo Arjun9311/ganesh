@@ -372,13 +372,10 @@ export default function HillClimbHUD({
           touchAction: 'none'
         }}>
           <button
-            onPointerDown={onBrakeStart}
-            onPointerUp={onBrakeEnd}
+            onPointerDown={(e) => { e.preventDefault(); onBrakeStart(); }}
+            onPointerUp={(e) => { e.preventDefault(); onBrakeEnd(); }}
             onPointerCancel={onBrakeEnd}
             onPointerLeave={onBrakeEnd}
-            onTouchStart={(e) => { e.preventDefault(); onBrakeStart(); }}
-            onTouchEnd={(e) => { e.preventDefault(); onBrakeEnd(); }}
-            onTouchCancel={(e) => { e.preventDefault(); onBrakeEnd(); }}
             onContextMenu={(e) => e.preventDefault()}
             style={{
               width: 'clamp(72px, 18vw, 110px)',
@@ -555,13 +552,10 @@ export default function HillClimbHUD({
           touchAction: 'none'
         }}>
           <button
-            onPointerDown={onGasStart}
-            onPointerUp={onGasEnd}
+            onPointerDown={(e) => { e.preventDefault(); onGasStart(); }}
+            onPointerUp={(e) => { e.preventDefault(); onGasEnd(); }}
             onPointerCancel={onGasEnd}
             onPointerLeave={onGasEnd}
-            onTouchStart={(e) => { e.preventDefault(); onGasStart(); }}
-            onTouchEnd={(e) => { e.preventDefault(); onGasEnd(); }}
-            onTouchCancel={(e) => { e.preventDefault(); onGasEnd(); }}
             onContextMenu={(e) => e.preventDefault()}
             style={{
               width: 'clamp(72px, 18vw, 110px)',

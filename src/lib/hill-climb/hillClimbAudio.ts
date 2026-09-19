@@ -17,26 +17,27 @@ export class HillClimbAudioEngine {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('vighnaharta_audio_muted');
+      const stored = localStorage.getItem('vighnaharta_muted') ?? localStorage.getItem('vighnaharta_audio_muted');
       this.isMuted = stored === 'true';
     }
   }
 
   private initContext() {
     if (!this.ctx && typeof window !== 'undefined') {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
   }
 
   public setMuted(muted: boolean) {
     this.isMuted = muted;
     if (typeof window !== 'undefined') {
+      localStorage.setItem('vighnaharta_muted', String(muted));
       localStorage.setItem('vighnaharta_audio_muted', String(muted));
     }
     if (this.isMuted) {

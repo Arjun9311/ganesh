@@ -247,3 +247,14 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--gold-dark);
 }
+
+/* Ganesh Idol Shop Responsive Layout */
+@media (max-width: 900px) {
+  .idol-shop-container {
+    grid-template-columns: 1fr !important;
+  }
+  .idol-preview-section {
+    position: relative !important;
+    top: 0 !important;
+  }
+}

@@ -69,8 +69,25 @@ export function getStoredGameSessions(): GameSession[] {
   const profile = getStoredProfile();
   const defaultSessions: GameSession[] = [
     {
-      id: 'sess-1',
+      id: 'sess-tr-1',
       user_id: profile.id,
+      game_mode: 'temple_run',
+      score: 16800,
+      distance: 4250,
+      duration: 165,
+      vighnas_destroyed: 86,
+      modaks_collected: 142,
+      powerups_collected: 8,
+      max_combo: 9,
+      weather: 'Frozen Shadows',
+      environment: 'Frozen Temple Path',
+      completed: false,
+      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+    },
+    {
+      id: 'sess-run-1',
+      user_id: profile.id,
+      game_mode: 'runner',
       score: 12450,
       distance: 3800,
       duration: 145,
@@ -84,8 +101,25 @@ export function getStoredGameSessions(): GameSession[] {
       created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
     },
     {
-      id: 'sess-2',
+      id: 'sess-hc-1',
       user_id: profile.id,
+      game_mode: 'hillclimb',
+      score: 8200,
+      distance: 1450,
+      duration: 120,
+      vighnas_destroyed: 24,
+      modaks_collected: 65,
+      powerups_collected: 3,
+      max_combo: 4,
+      weather: 'Alpine Snow',
+      environment: 'Kailash Foothills',
+      completed: false,
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString()
+    },
+    {
+      id: 'sess-run-2',
+      user_id: profile.id,
+      game_mode: 'runner',
       score: 6000,
       distance: 3000,
       duration: 110,
@@ -96,7 +130,7 @@ export function getStoredGameSessions(): GameSession[] {
       weather: 'Sunset',
       environment: 'Temple Street',
       completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString()
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString()
     }
   ];
 
@@ -310,4 +344,149 @@ export function saveStoredHillClimbData(data: HillClimbSaveData): void {
     localStorage.setItem(HILL_CLIMB_KEY, JSON.stringify(data));
   } catch {}
 }
+
+// ---------------------------------------------------------------------------
+// GANESH IDOL SHOP PERSISTENCE & AVATAR SYSTEM
+// ---------------------------------------------------------------------------
+import { SavedGaneshaDesign } from '@/types/idolShop';
+import { PRESET_DESIGNS } from './idolShopData';
+
+const GANESHA_DESIGNS_KEY = 'vighnaharta_ganesha_designs';
+const ACTIVE_GANESHA_AVATAR_KEY = 'vighnaharta_active_ganesha_avatar';
+
+export function getSavedGaneshaDesigns(): SavedGaneshaDesign[] {
+  if (typeof window === 'undefined') return PRESET_DESIGNS;
+  try {
+    const raw = localStorage.getItem(GANESHA_DESIGNS_KEY);
+    if (raw) {
+      const parsed: SavedGaneshaDesign[] = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {}
+  return PRESET_DESIGNS;
+}
+
+export function saveGaneshaDesign(design: SavedGaneshaDesign): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const designs = getSavedGaneshaDesigns();
+    const existingIndex = designs.findIndex(d => d.id === design.id);
+    if (existingIndex >= 0) {
+      designs[existingIndex] = design;
+    } else {
+      designs.unshift(design);
+    }
+    localStorage.setItem(GANESHA_DESIGNS_KEY, JSON.stringify(designs));
+  } catch {}
+}
+
+export function deleteGaneshaDesign(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const designs = getSavedGaneshaDesigns().filter(d => d.id !== id);
+    localStorage.setItem(GANESHA_DESIGNS_KEY, JSON.stringify(designs));
+    
+    // If active avatar was deleted, reset to first available or null
+    const active = getActiveGaneshaAvatar();
+    if (active && active.id === id) {
+      if (designs.length > 0) {
+        setActiveGaneshaAvatar(designs[0].id);
+      } else {
+        localStorage.removeItem(ACTIVE_GANESHA_AVATAR_KEY);
+      }
+    }
+  } catch {}
+}
+
+export function getActiveGaneshaAvatar(): SavedGaneshaDesign | null {
+  if (typeof window === 'undefined') return PRESET_DESIGNS[0];
+  try {
+    const activeId = localStorage.getItem(ACTIVE_GANESHA_AVATAR_KEY);
+    const designs = getSavedGaneshaDesigns();
+    if (activeId) {
+      const found = designs.find(d => d.id === activeId);
+      if (found) return found;
+    }
+    // Default to first preset if available
+    return designs[0] || PRESET_DESIGNS[0];
+  } catch {}
+  return PRESET_DESIGNS[0];
+}
+
+export function setActiveGaneshaAvatar(designId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(ACTIVE_GANESHA_AVATAR_KEY, designId);
+    
+    // Also sync with user profile avatar
+    const profile = getStoredProfile();
+    profile.avatar = `custom_${designId}`;
+    saveStoredProfile(profile);
+  } catch {}
+}
+
+// ---------------------------------------------------------------------------
+// TEMPLE RUN PERSISTENCE & STATS
+// ---------------------------------------------------------------------------
+export interface TempleRunStats {
+  best_score: number;
+  best_distance: number;
+  total_modaks: number;
+  total_vighnas: number;
+  best_combo: number;
+  games_played: number;
+  highest_speed: number;
+  updated_at: string;
+}
+
+const TEMPLE_RUN_STATS_KEY = 'vighnaharta_temple_run_stats';
+
+export const DEFAULT_TEMPLE_RUN_STATS: TempleRunStats = {
+  best_score: 16800,
+  best_distance: 4250,
+  total_modaks: 142,
+  total_vighnas: 86,
+  best_combo: 9,
+  games_played: 4,
+  highest_speed: 18,
+  updated_at: new Date().toISOString()
+};
+
+export function getStoredTempleRunStats(): TempleRunStats {
+  if (typeof window === 'undefined') return DEFAULT_TEMPLE_RUN_STATS;
+  try {
+    const raw = localStorage.getItem(TEMPLE_RUN_STATS_KEY);
+    if (raw) return { ...DEFAULT_TEMPLE_RUN_STATS, ...JSON.parse(raw) };
+  } catch {}
+  return DEFAULT_TEMPLE_RUN_STATS;
+}
+
+export function saveStoredTempleRunStats(stats: TempleRunStats): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(TEMPLE_RUN_STATS_KEY, JSON.stringify(stats));
+  } catch {}
+}
+
+export async function recordTempleRunSession(session: Omit<GameSession, 'id' | 'created_at'>): Promise<GameSession> {
+  const trStats = getStoredTempleRunStats();
+  trStats.best_score = Math.max(trStats.best_score, session.score);
+  trStats.best_distance = Math.max(trStats.best_distance, session.distance);
+  trStats.total_modaks += session.modaks_collected;
+  trStats.total_vighnas += session.vighnas_destroyed;
+  trStats.best_combo = Math.max(trStats.best_combo, session.max_combo);
+  trStats.games_played += 1;
+  trStats.updated_at = new Date().toISOString();
+  saveStoredTempleRunStats(trStats);
+
+  return recordGameSession({
+    ...session,
+    game_mode: 'temple_run',
+    weather: session.weather || 'Frozen Shadows',
+    environment: session.environment || 'Frozen Temple'
+  });
+}
+
 

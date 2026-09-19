@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { User, MapPin, Trophy, Sparkles, Award, Edit3, Check, X, Shield, Play } from 'lucide-react';
-import { getStoredProfile, saveStoredProfile, getStoredPlayerStats } from '@/lib/storage';
+import { User, MapPin, Trophy, Sparkles, Award, Edit3, Check, X, Shield, Play, Palette } from 'lucide-react';
+import { getStoredProfile, saveStoredProfile, getStoredPlayerStats, getSavedGaneshaDesigns, getActiveGaneshaAvatar } from '@/lib/storage';
 import { getAchievementsList, AchievementDef } from '@/lib/achievements';
 import { Profile, PlayerStats } from '@/types/database';
 import { FESTIVAL_CITIES } from '@/lib/weather';
+import GaneshaAvatar from '@/components/idol-shop/GaneshaAvatar';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -65,24 +66,15 @@ export default function ProfilePage() {
           gap: 20
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {/* Avatar Badge */}
-            <div style={{
-              width: 84,
-              height: 84,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(255, 184, 0, 0.25) 0%, rgba(255, 103, 31, 0.35) 100%)',
-              border: '2px solid var(--gold-divine)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2.8rem',
-              boxShadow: 'var(--shadow-gold)'
-            }}>
-              {profile?.avatar === 'golden' ? '👑' : (profile?.avatar === 'divine' ? '✨' : (profile?.avatar === 'lotus' ? '🪷' : '🪔'))}
-            </div>
+            {/* Avatar Badge with Custom Ganesha Support */}
+            <GaneshaAvatar
+              avatarId={profile?.avatar}
+              size={84}
+              showBorder={true}
+            />
 
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <h1 style={{
                   fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
@@ -106,6 +98,26 @@ export default function ProfilePage() {
                 >
                   <Edit3 size={15} />
                 </button>
+
+                <Link
+                  href="/idol-shop"
+                  title="Customize Idol in Artisan Shop"
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 'var(--radius-full)',
+                    background: 'linear-gradient(135deg, rgba(255, 184, 0, 0.2) 0%, rgba(255, 103, 31, 0.25) 100%)',
+                    border: '1px solid var(--border-gold)',
+                    color: 'var(--gold-light)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: '0.8rem',
+                    fontWeight: 700
+                  }}
+                >
+                  <Palette size={14} color="#FFD700" />
+                  <span>IDOL SHOP</span>
+                </Link>
               </div>
 
               <div style={{
@@ -368,8 +380,9 @@ export default function ProfilePage() {
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-cream)', fontWeight: 700, display: 'block', marginBottom: 6 }}>
                   Avatar Style
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
                   {[
+                    { id: 'custom', icon: '🐘' },
                     { id: 'saffron', icon: '🪔' },
                     { id: 'golden', icon: '👑' },
                     { id: 'divine', icon: '✨' },
@@ -379,13 +392,13 @@ export default function ProfilePage() {
                       key={av.id}
                       onClick={() => setEditAvatar(av.id)}
                       style={{
-                        padding: '10px',
+                        padding: '10px 6px',
                         textAlign: 'center',
-                        fontSize: '1.6rem',
+                        fontSize: '1.5rem',
                         borderRadius: 'var(--radius-sm)',
                         cursor: 'pointer',
-                        background: editAvatar === av.id ? 'rgba(255, 184, 0, 0.25)' : 'rgba(255, 255, 255, 0.04)',
-                        border: editAvatar === av.id ? '1.5px solid var(--gold-divine)' : '1px solid rgba(255, 255, 255, 0.08)'
+                        background: (editAvatar === av.id || (av.id === 'custom' && editAvatar.startsWith('custom'))) ? 'rgba(255, 184, 0, 0.25)' : 'rgba(255, 255, 255, 0.04)',
+                        border: (editAvatar === av.id || (av.id === 'custom' && editAvatar.startsWith('custom'))) ? '1.5px solid var(--gold-divine)' : '1px solid rgba(255, 255, 255, 0.08)'
                       }}
                     >
                       {av.icon}

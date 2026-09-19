@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Trophy, BarChart3, User, Volume2, VolumeX, CloudSun, Play, Flame, Menu, X } from 'lucide-react';
+import { Sparkles, Trophy, BarChart3, User, Volume2, VolumeX, CloudSun, Play, Flame, Menu, X, Palette, Snowflake } from 'lucide-react';
 import { audioEngine } from '@/lib/audioEngine';
 import { fetchCityWeather } from '@/lib/weather';
 import { getStoredProfile } from '@/lib/storage';
@@ -32,12 +32,14 @@ export default function Navbar() {
   };
 
   // Hide full navbar inside active game to maximize immersion
-  if (pathname === '/game' || pathname === '/hill-climb') {
+  if (pathname === '/game' || pathname === '/hill-climb' || pathname === '/idol-shop' || pathname === '/temple-run') {
     return null;
   }
 
   const navLinks = [
     { name: 'ARCADE', href: '/arcade', icon: Sparkles, isAction: true },
+    { name: 'TEMPLE RUN', href: '/temple-run', icon: Snowflake },
+    { name: 'IDOL SHOP', href: '/idol-shop', icon: Palette },
     { name: 'HILL CLIMB', href: '/hill-climb', icon: Flame },
     { name: '3D RUNNER', href: '/game', icon: Play },
     { name: 'DASHBOARD', href: '/dashboard', icon: BarChart3 },

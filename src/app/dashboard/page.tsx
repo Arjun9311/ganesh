@@ -13,28 +13,40 @@ import {
   Play,
   Sparkles,
   MapPin,
-  Users,
   Activity,
   Award,
   ArrowRight,
   Shield,
   Compass,
   CheckCircle2,
-  Disc,
-  Fuel,
-  ChevronRight
+  ChevronRight,
+  Palette,
+  Snowflake,
+  Heart,
+  RefreshCw,
+  Layers,
+  Filter
 } from 'lucide-react';
 import {
   getStoredPlayerStats,
   getStoredGameSessions,
   getStoredProfile,
-  getStoredHillClimbData
+  getStoredHillClimbData,
+  getStoredTempleRunStats,
+  getActiveGaneshaAvatar,
+  getSavedGaneshaDesigns,
+  setActiveGaneshaAvatar,
+  TempleRunStats
 } from '@/lib/storage';
 import { PlayerStats, GameSession, Profile } from '@/types/database';
 import { HillClimbSaveData, VehicleId, StageId } from '@/types/hillClimb';
+import { SavedGaneshaDesign } from '@/types/idolShop';
 import { VEHICLE_CONFIGS, STAGE_CONFIGS } from '@/lib/hill-climb/hillClimbEngine';
+import GaneshaAvatar from '@/components/idol-shop/GaneshaAvatar';
+import GaneshaIdolRenderer from '@/components/idol-shop/GaneshaIdolRenderer';
+import { DEFAULT_GANESHA_CONFIG } from '@/lib/idolShopData';
 
-type DashboardTab = 'overview' | 'runner' | 'hillclimb' | 'history';
+type DashboardTab = 'overview' | 'temple_run' | 'runner' | 'hillclimb' | 'idol_shop' | 'history';
 
 const VEHICLE_KEYS: VehicleId[] = ['mushika_rath', 'airavata_rover', 'kailash_quad', 'garuda_turbo'];
 const STAGE_KEYS: StageId[] = ['kailash_foothills', 'western_ghats', 'varanasi_dunes', 'svarga_heights'];
@@ -42,51 +54,153 @@ const STAGE_KEYS: StageId[] = ['kailash_foothills', 'western_ghats', 'varanasi_d
 export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [templeStats, setTempleStats] = useState<TempleRunStats | null>(null);
   const [sessions, setSessions] = useState<GameSession[]>([]);
   const [hillClimbData, setHillClimbData] = useState<HillClimbSaveData | null>(null);
+  const [activeAvatar, setActiveAvatar] = useState<SavedGaneshaDesign | null>(null);
+  const [savedDesigns, setSavedDesigns] = useState<SavedGaneshaDesign[]>([]);
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'temple_run' | 'runner' | 'hillclimb'>('all');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
     setProfile(getStoredProfile());
     setStats(getStoredPlayerStats());
+    setTempleStats(getStoredTempleRunStats());
     setSessions(getStoredGameSessions());
     setHillClimbData(getStoredHillClimbData());
+    setActiveAvatar(getActiveGaneshaAvatar());
+    setSavedDesigns(getSavedGaneshaDesigns());
   }, []);
 
-  // Format chart data for 3D Runner runs
+  // Format chart data for 3D Runner and Temple runs
   const chartData = (sessions && sessions.length > 0 ? [...sessions].reverse() : [
     { score: 3200, vighnas_destroyed: 18, modaks_collected: 28, distance: 1200, max_combo: 3 },
     { score: 6500, vighnas_destroyed: 35, modaks_collected: 54, distance: 2400, max_combo: 5 },
     { score: 12450, vighnas_destroyed: 74, modaks_collected: 103, distance: 3800, max_combo: 8 },
+    { score: 16800, vighnas_destroyed: 86, modaks_collected: 142, distance: 4250, max_combo: 9 }
   ]).map((sess, idx) => ({
     run: `Run ${idx + 1}`,
-    score: sess.score,
-    vighnas: sess.vighnas_destroyed,
-    modaks: sess.modaks_collected,
-    distanceKm: parseFloat((sess.distance / 1000).toFixed(2)),
-    combo: sess.max_combo
+    score: sess.score || 0,
+    vighnas: sess.vighnas_destroyed || 0,
+    modaks: sess.modaks_collected || 0,
+    distanceKm: parseFloat(((sess.distance || 0) / 1000).toFixed(2)),
+    combo: sess.max_combo || 1
   }));
 
-  // Best distance across all Hill Climb stages
-  const bestHillClimbDistance = hillClimbData
-    ? Math.max(...Object.values(hillClimbData.stages).map(s => s.bestDistance || 0))
+  // Best distance across all Hill Climb stages (safe from empty arrays / undefined)
+  const stagesList = hillClimbData?.stages ? Object.values(hillClimbData.stages) : [];
+  const bestHillClimbDistance = stagesList.length > 0
+    ? Math.max(0, ...stagesList.map(s => s?.bestDistance || 0))
     : 1056;
 
-  // Total Modak coins (3D runner modaks + Hill Climb coins)
-  const totalModakWealth = (stats?.total_modaks || 103) + (hillClimbData?.coins || 5000);
+  // Unified Modak Wealth across all 4 games
+  const totalModakWealth = (stats?.total_modaks || 103) + (templeStats?.total_modaks || 142) + (hillClimbData?.coins || 5000);
+
+  // Total Vighnas cleared across runners
+  const totalVighnasSmashed = (stats?.total_vighnas || 74) + (templeStats?.total_vighnas || 86);
+
+  // Filtered sessions for history tab
+  const displaySessions = (sessions && sessions.length > 0 ? sessions : [
+    {
+      id: 'sess-tr-1',
+      user_id: 'guest',
+      game_mode: 'temple_run',
+      score: 16800,
+      distance: 4250,
+      duration: 165,
+      vighnas_destroyed: 86,
+      modaks_collected: 142,
+      powerups_collected: 8,
+      max_combo: 9,
+      weather: 'Frozen Shadows',
+      environment: 'Frozen Temple Path',
+      completed: false,
+      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+    },
+    {
+      id: 'sess-run-1',
+      user_id: 'guest',
+      game_mode: 'runner',
+      score: 12450,
+      distance: 3800,
+      duration: 145,
+      vighnas_destroyed: 74,
+      modaks_collected: 103,
+      powerups_collected: 5,
+      max_combo: 8,
+      weather: 'Sunny',
+      environment: 'Festival Street',
+      completed: false,
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
+    },
+    {
+      id: 'sess-hc-1',
+      user_id: 'guest',
+      game_mode: 'hillclimb',
+      score: 8200,
+      distance: 1450,
+      duration: 120,
+      vighnas_destroyed: 24,
+      modaks_collected: 65,
+      powerups_collected: 3,
+      max_combo: 4,
+      weather: 'Alpine Snow',
+      environment: 'Kailash Foothills',
+      completed: false,
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString()
+    },
+    {
+      id: 'sess-run-2',
+      user_id: 'guest',
+      game_mode: 'runner',
+      score: 6000,
+      distance: 3000,
+      duration: 110,
+      vighnas_destroyed: 35,
+      modaks_collected: 54,
+      powerups_collected: 2,
+      max_combo: 5,
+      weather: 'Sunset',
+      environment: 'Temple Street',
+      completed: false,
+      created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString()
+    }
+  ]).filter(s => {
+    if (historyFilter === 'all') return true;
+    if (historyFilter === 'temple_run') {
+      return s.game_mode === 'temple_run' || s.weather?.toLowerCase().includes('frozen') || s.environment?.toLowerCase().includes('temple run');
+    }
+    if (historyFilter === 'hillclimb') {
+      return s.game_mode === 'hillclimb' || s.environment?.toLowerCase().includes('foothills') || s.environment?.toLowerCase().includes('ghats') || s.environment?.toLowerCase().includes('dunes') || s.environment?.toLowerCase().includes('svarga');
+    }
+    if (historyFilter === 'runner') {
+      return s.game_mode === 'runner' || (!s.game_mode && !s.weather?.toLowerCase().includes('frozen'));
+    }
+    return true;
+  });
+
+  const getGameLabel = (s: GameSession) => {
+    if (s.game_mode === 'temple_run' || s.weather?.toLowerCase().includes('frozen') || s.environment?.toLowerCase().includes('temple run')) {
+      return { icon: '❄️', name: 'Temple Run', sub: 'Frozen Shadows', color: '#38BDF8', bg: 'rgba(56, 189, 248, 0.15)' };
+    }
+    if (s.game_mode === 'hillclimb' || s.environment?.toLowerCase().includes('foothills') || s.environment?.toLowerCase().includes('ghats') || s.environment?.toLowerCase().includes('dunes') || s.environment?.toLowerCase().includes('svarga')) {
+      return { icon: '🏎️', name: 'Hill Climb', sub: s.environment || 'Kailash', color: '#F43F5E', bg: 'rgba(244, 63, 94, 0.15)' };
+    }
+    return { icon: '🏃', name: '3D Runner', sub: s.environment || 'Festival Street', color: '#FFB800', bg: 'rgba(255, 184, 0, 0.15)' };
+  };
 
   return (
     <div style={{
-      maxWidth: 1280,
+      maxWidth: 1320,
       margin: '0 auto',
       padding: 'clamp(20px, 3.5vw, 32px) clamp(12px, 3vw, 24px) 80px',
       display: 'flex',
       flexDirection: 'column',
       gap: 24
     }}>
-      {/* 1. TOP HEADER & PROFILE COMMAND BAR */}
+      {/* 1. TOP COMMAND BAR & PROFILE IDENTIFICATION */}
       <div style={{
         background: 'linear-gradient(135deg, rgba(18, 24, 43, 0.95) 0%, rgba(11, 15, 28, 0.98) 100%)',
         border: '1.5px solid rgba(255, 184, 0, 0.35)',
@@ -99,34 +213,20 @@ export default function DashboardPage() {
         flexWrap: 'wrap',
         gap: 20
       }}>
-        {/* Left: User Identity & Titles */}
+        {/* Left: Player Identity & Sanctum Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          {/* Avatar Icon */}
-          <div style={{
-            width: 68,
-            height: 68,
-            borderRadius: 20,
-            background: 'radial-gradient(circle at 35% 35%, #FFF7ED 0%, #FFB800 50%, #B45309 100%)',
-            border: '2.5px solid #FFD700',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 34,
-            boxShadow: '0 0 24px rgba(255, 184, 0, 0.45)',
-            position: 'relative',
-            flexShrink: 0
-          }}>
-            🕉️
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <GaneshaAvatar avatarId={profile?.avatar} size={72} showBorder={true} />
             <div style={{
               position: 'absolute',
-              bottom: -4,
-              right: -4,
-              width: 16,
-              height: 16,
+              bottom: -2,
+              right: -2,
+              width: 18,
+              height: 18,
               borderRadius: '50%',
               background: '#10B981',
-              border: '2px solid #080B14',
-              boxShadow: '0 0 8px #10B981'
+              border: '2.5px solid #080B14',
+              boxShadow: '0 0 10px #10B981'
             }} />
           </div>
 
@@ -147,7 +247,7 @@ export default function DashboardPage() {
 
             <h1 style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: '2.2rem',
+              fontSize: 'clamp(1.8rem, 4vw, 2.4rem)',
               fontWeight: 900,
               color: '#FFFFFF',
               letterSpacing: '1px',
@@ -159,7 +259,7 @@ export default function DashboardPage() {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 14,
+              gap: 12,
               fontSize: '0.85rem',
               color: '#94A3B8',
               flexWrap: 'wrap'
@@ -170,93 +270,142 @@ export default function DashboardPage() {
               </span>
               <span>•</span>
               <span style={{ color: '#4ADE80', fontWeight: 700 }}>
-                Level: Vighnaharta Champion
+                {activeAvatar?.name ? `Deity: ${activeAvatar.name}` : 'Rank: Vighnaharta Champion'}
               </span>
               <span>•</span>
               <span style={{ color: '#38BDF8' }}>
-                {stats?.games_played || 3} Expeditions Completed
+                {sessions.length || 4} Total Expeditions Logged
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right: Quick Launch Button Group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        {/* Right: Quick Launch Button Group FOR ALL 4 GAMES */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {/* Game 1: Temple Run */}
+          <Link
+            href="/temple-run"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '11px 18px',
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, #0284C7, #06B6D4)',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: 12,
+              letterSpacing: 0.8,
+              boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)',
+              transition: 'all 0.2s',
+              textTransform: 'uppercase'
+            }}
+          >
+            <Snowflake size={15} />
+            <span>TEMPLE RUN</span>
+          </Link>
+
+          {/* Game 2: 3D Runner */}
           <Link
             href="/game"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              padding: '12px 22px',
+              padding: '11px 18px',
               borderRadius: 14,
               background: 'linear-gradient(135deg, #FF671F, #FFB800)',
               color: '#080B14',
               fontWeight: 800,
-              fontSize: 13,
-              letterSpacing: 1,
+              fontSize: 12,
+              letterSpacing: 0.8,
               boxShadow: '0 0 20px rgba(255, 184, 0, 0.4)',
               transition: 'all 0.2s',
               textTransform: 'uppercase'
             }}
           >
-            <Play size={16} fill="#080B14" />
-            <span>PLAY 3D RUNNER</span>
+            <Play size={15} fill="#080B14" />
+            <span>3D RUNNER</span>
           </Link>
 
+          {/* Game 3: Hill Climb */}
           <Link
             href="/hill-climb"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              padding: '12px 22px',
+              padding: '11px 18px',
               borderRadius: 14,
               background: 'linear-gradient(135deg, #E11D48, #F59E0B)',
               color: '#FFFFFF',
               fontWeight: 800,
-              fontSize: 13,
-              letterSpacing: 1,
+              fontSize: 12,
+              letterSpacing: 0.8,
               boxShadow: '0 0 20px rgba(225, 29, 72, 0.4)',
               transition: 'all 0.2s',
               textTransform: 'uppercase'
             }}
           >
-            <span>🚀</span>
+            <span>🏎️</span>
             <span>HILL CLIMB</span>
           </Link>
 
+          {/* Game 4: Idol Shop */}
+          <Link
+            href="/idol-shop"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '11px 18px',
+              borderRadius: 14,
+              background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: 12,
+              letterSpacing: 0.8,
+              boxShadow: '0 0 20px rgba(124, 58, 237, 0.4)',
+              transition: 'all 0.2s',
+              textTransform: 'uppercase'
+            }}
+          >
+            <Palette size={15} />
+            <span>IDOL SHOP</span>
+          </Link>
+
+          {/* Arcade Hub */}
           <Link
             href="/arcade"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              padding: '12px 20px',
+              padding: '11px 16px',
               borderRadius: 14,
               background: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               color: '#FFE57F',
               fontWeight: 700,
-              fontSize: 13,
-              letterSpacing: 1,
+              fontSize: 12,
+              letterSpacing: 0.8,
               transition: 'all 0.2s',
               textTransform: 'uppercase'
             }}
           >
-            <Compass size={16} />
-            <span>ARCADE HUB</span>
+            <Compass size={15} />
+            <span>ARCADE</span>
           </Link>
         </div>
       </div>
 
-      {/* 2. TOP 6 PRIMARY KPI METRICS GRID */}
+      {/* 2. PRIMARY 6 UNIFIED KPI CARDS (COVERING ALL 4 GAMES) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
         gap: 'clamp(10px, 2vw, 16px)'
       }}>
-        {/* KPI 1: Total Modak Wealth */}
+        {/* KPI 1: Modak Wealth */}
         <div style={{
           background: 'rgba(18, 24, 43, 0.85)',
           border: '1px solid rgba(255, 184, 0, 0.3)',
@@ -272,19 +421,47 @@ export default function DashboardPage() {
           </div>
           <div style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 900,
             color: '#FFD700',
             marginTop: 6
           }}>
             {totalModakWealth.toLocaleString()}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#4ADE80', marginTop: 4 }}>
-            🍬 {stats?.total_modaks || 103} + 🪙 {hillClimbData?.coins || 5000}
+          <div style={{ fontSize: '0.72rem', color: '#4ADE80', marginTop: 4 }}>
+            🍬 {stats?.total_modaks || 103} + ❄️ {templeStats?.total_modaks || 142} + 🪙 {hillClimbData?.coins || 5000}
           </div>
         </div>
 
-        {/* KPI 2: 3D Runner All-Time Best */}
+        {/* KPI 2: Temple Run Record */}
+        <div style={{
+          background: 'rgba(18, 24, 43, 0.85)',
+          border: '1px solid rgba(56, 189, 248, 0.35)',
+          borderRadius: 18,
+          padding: '18px 20px',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>
+              TEMPLE RUN RECORD
+            </span>
+            <Snowflake size={18} color="#38BDF8" />
+          </div>
+          <div style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: '1.8rem',
+            fontWeight: 900,
+            color: '#38BDF8',
+            marginTop: 6
+          }}>
+            {(templeStats?.best_score || 16800).toLocaleString()}
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#FFE57F', marginTop: 4 }}>
+            ❄️ {((templeStats?.best_distance || 4250) / 1000).toFixed(2)} KM in Frozen Shadows
+          </div>
+        </div>
+
+        {/* KPI 3: 3D Runner Record */}
         <div style={{
           background: 'rgba(18, 24, 43, 0.85)',
           border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -300,22 +477,22 @@ export default function DashboardPage() {
           </div>
           <div style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 900,
             color: '#10B981',
             marginTop: 6
           }}>
             {(stats?.best_score || 12450).toLocaleString()}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#FFE57F', marginTop: 4 }}>
-            🏆 Rank: Top 5 Devotee
+          <div style={{ fontSize: '0.72rem', color: '#FFB800', marginTop: 4 }}>
+            💥 x{stats?.best_combo || 8} Combo Streak
           </div>
         </div>
 
-        {/* KPI 3: Hill Climb Record */}
+        {/* KPI 4: Mountain Record */}
         <div style={{
           background: 'rgba(18, 24, 43, 0.85)',
-          border: '1px solid rgba(56, 189, 248, 0.3)',
+          border: '1px solid rgba(244, 63, 94, 0.3)',
           borderRadius: 18,
           padding: '18px 20px',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
@@ -328,47 +505,19 @@ export default function DashboardPage() {
           </div>
           <div style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 900,
-            color: '#38BDF8',
+            color: '#F43F5E',
             marginTop: 6
           }}>
             {bestHillClimbDistance.toLocaleString()} m
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: 4 }}>
-            Kailash Alpine Foothills
+          <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: 4 }}>
+            Mount Kailash & 4 Peaks
           </div>
         </div>
 
-        {/* KPI 4: Total Distance */}
-        <div style={{
-          background: 'rgba(18, 24, 43, 0.85)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          borderRadius: 18,
-          padding: '18px 20px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>
-              TOTAL DISTANCE
-            </span>
-            <Activity size={18} color="#FFB800" />
-          </div>
-          <div style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: '1.9rem',
-            fontWeight: 900,
-            color: '#FFFFFF',
-            marginTop: 6
-          }}>
-            {(((stats?.total_distance || 6800)) / 1000).toFixed(2)} KM
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: 4 }}>
-            Across all sacred streets
-          </div>
-        </div>
-
-        {/* KPI 5: Vighnas Removed */}
+        {/* KPI 5: Total Vighnas Cleared */}
         <div style={{
           background: 'rgba(18, 24, 43, 0.85)',
           border: '1px solid rgba(255, 103, 31, 0.3)',
@@ -378,25 +527,25 @@ export default function DashboardPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>
-              VIGHNAS REMOVED
+              VIGHNAS DESTROYED
             </span>
             <span style={{ fontSize: 18 }}>💥</span>
           </div>
           <div style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 900,
             color: '#FF671F',
             marginTop: 6
           }}>
-            {stats?.total_vighnas || 74}
+            {totalVighnasSmashed}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#FFD700', marginTop: 4 }}>
-            Sacred Goal: {stats?.total_vighnas || 74} / 108
+          <div style={{ fontSize: '0.72rem', color: '#FFD700', marginTop: 4 }}>
+            Sacred Target: {totalVighnasSmashed} / 108
           </div>
         </div>
 
-        {/* KPI 6: Fleet Status */}
+        {/* KPI 6: Handcrafted Idols */}
         <div style={{
           background: 'rgba(18, 24, 43, 0.85)',
           border: '1px solid rgba(168, 85, 247, 0.3)',
@@ -406,39 +555,41 @@ export default function DashboardPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>
-              CHARIOTS FLEET
+              SANCTUM IDOLS
             </span>
-            <span style={{ fontSize: 18 }}>🏎️</span>
+            <Palette size={18} color="#C084FC" />
           </div>
           <div style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: '1.9rem',
+            fontSize: '1.8rem',
             fontWeight: 900,
             color: '#C084FC',
             marginTop: 6
           }}>
-            4 / 4
+            {savedDesigns.length || 3} Deities
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#4ADE80', marginTop: 4 }}>
-            ✓ 100% Unlocked & Ready
+          <div style={{ fontSize: '0.72rem', color: '#4ADE80', marginTop: 4 }}>
+            ✓ Active: {activeAvatar?.name || 'Golden Peetham'}
           </div>
         </div>
       </div>
 
-      {/* 3. INTERACTIVE SECTION TABS */}
+      {/* 3. INTERACTIVE SECTION TABS (6 TABS FOR ALL 4 GAMES) */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
+        gap: 10,
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         paddingBottom: 14,
         overflowX: 'auto'
       }}>
         {([
           { id: 'overview', label: '🌟 ALL EXPEDITIONS', desc: 'Unified Overview' },
-          { id: 'runner', label: '🏃 3D ENDLESS RUNNER', desc: 'Score & Vighnas' },
-          { id: 'hillclimb', label: '🏎️ HILL CLIMB RACING', desc: 'Garage & Stages' },
-          { id: 'history', label: '📜 RUN HISTORY & LOGS', desc: 'Session Logs' }
+          { id: 'temple_run', label: '❄️ TEMPLE RUN', desc: 'Frozen Shadows' },
+          { id: 'runner', label: '🏃 3D RUNNER', desc: 'Festival Streets' },
+          { id: 'hillclimb', label: '🏎️ HILL CLIMB', desc: 'Garage & Stages' },
+          { id: 'idol_shop', label: '🎨 IDOL SHOP', desc: 'Custom Sanctum' },
+          { id: 'history', label: '📜 RUN HISTORY', desc: 'Session Logs' }
         ] as const).map(t => {
           const isActive = activeTab === t.id;
           return (
@@ -446,7 +597,7 @@ export default function DashboardPage() {
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               style={{
-                padding: '10px 20px',
+                padding: '10px 18px',
                 borderRadius: 12,
                 background: isActive
                   ? 'linear-gradient(135deg, #FF671F, #FFB800)'
@@ -454,7 +605,7 @@ export default function DashboardPage() {
                 color: isActive ? '#080B14' : '#FFE57F',
                 fontWeight: 800,
                 fontSize: 13,
-                letterSpacing: 1,
+                letterSpacing: 0.8,
                 border: isActive ? 'none' : '1px solid rgba(255, 184, 0, 0.2)',
                 cursor: 'pointer',
                 boxShadow: isActive ? '0 0 20px rgba(255, 184, 0, 0.45)' : 'none',
@@ -468,18 +619,100 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* 4. TAB CONTENT: OVERVIEW */}
+      {/* 4. TAB CONTENT: OVERVIEW (ALL 4 GAMES SHOWCASE CARDS) */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-          {/* Quick Play Game Cards (Two Columns) */}
+          {/* 4 Game Cards Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
             gap: 20
           }}>
-            {/* 3D Runner Card */}
+            {/* Card 1: Vighnaharta Temple Run */}
             <div style={{
-              background: 'radial-gradient(ellipse at 80% 20%, rgba(255, 103, 31, 0.15) 0%, rgba(18, 24, 43, 0.9) 70%)',
+              background: 'radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.15) 0%, rgba(18, 24, 43, 0.95) 70%)',
+              border: '1.5px solid rgba(6, 182, 212, 0.4)',
+              borderRadius: 22,
+              padding: 24,
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1.5,
+                    color: '#38BDF8',
+                    background: 'rgba(56, 189, 248, 0.15)',
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(56, 189, 248, 0.3)'
+                  }}>
+                    ❄️ TEMPLE RUN 2 - FROZEN
+                  </span>
+                  <span style={{ fontSize: 24 }}>🏛️</span>
+                </div>
+
+                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 900, color: '#FFFFFF', marginBottom: 6 }}>
+                  Vighnaharta Temple Run
+                </h3>
+                <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.5, marginBottom: 18 }}>
+                  Endless 3D running through glacial mountain temple corridors with 90° corner turns, icicle caverns, snow hurdles, and frost demons.
+                </p>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 10,
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  padding: 12,
+                  borderRadius: 14,
+                  marginBottom: 20
+                }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8' }}>HIGH SCORE</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#38BDF8' }}>{(templeStats?.best_score || 16800).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8' }}>DISTANCE</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FFE57F' }}>{((templeStats?.best_distance || 4250) / 1000).toFixed(2)} KM</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8' }}>VIGHNAS</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#4ADE80' }}>{templeStats?.total_vighnas || 86}</div>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/temple-run"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, #0284C7, #06B6D4)',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  letterSpacing: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  textTransform: 'uppercase'
+                }}
+              >
+                <Snowflake size={16} />
+                <span>PLAY TEMPLE RUN</span>
+              </Link>
+            </div>
+
+            {/* Card 2: 3D Endless Runner */}
+            <div style={{
+              background: 'radial-gradient(ellipse at 80% 20%, rgba(255, 103, 31, 0.15) 0%, rgba(18, 24, 43, 0.95) 70%)',
               border: '1.5px solid rgba(255, 103, 31, 0.35)',
               borderRadius: 22,
               padding: 24,
@@ -500,19 +733,18 @@ export default function DashboardPage() {
                     borderRadius: 8,
                     border: '1px solid rgba(255, 103, 31, 0.3)'
                   }}>
-                    SUBWAY SURFERS 3D RUNNER
+                    SUBWAY SURFERS STYLE
                   </span>
                   <span style={{ fontSize: 24 }}>🏃</span>
                 </div>
 
-                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 900, color: '#FFFFFF', marginBottom: 6 }}>
+                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 900, color: '#FFFFFF', marginBottom: 6 }}>
                   Vighnaharta 3D Runner
                 </h3>
                 <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.5, marginBottom: 18 }}>
-                  Don&apos;t just avoid obstacles — smash them with divine Gada strikes! Dash through festival streets, surf train rooftops, and collect modaks.
+                  Dash across 3 festival street lanes, smash obstacles with divine Gada strikes, ride the Mushika Hoverboard, and collect sweet modaks.
                 </p>
 
-                {/* Mini Stats Bar */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
@@ -524,15 +756,15 @@ export default function DashboardPage() {
                 }}>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>HIGH SCORE</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#FFD700' }}>{(stats?.best_score || 12450).toLocaleString()}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FFD700' }}>{(stats?.best_score || 12450).toLocaleString()}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>MAX COMBO</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#FF671F' }}>x{stats?.best_combo || 8}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FF671F' }}>x{stats?.best_combo || 8}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>RUNS</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#38BDF8' }}>{stats?.games_played || 3}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#38BDF8' }}>{stats?.games_played || 3}</div>
                   </div>
                 </div>
               </div>
@@ -556,13 +788,13 @@ export default function DashboardPage() {
                 }}
               >
                 <Play size={16} fill="#080B14" />
-                <span>LAUNCH 3D RUNNER</span>
+                <span>PLAY 3D RUNNER</span>
               </Link>
             </div>
 
-            {/* Hill Climb Racing Card */}
+            {/* Card 3: Hill Climb Racing */}
             <div style={{
-              background: 'radial-gradient(ellipse at 80% 20%, rgba(225, 29, 72, 0.15) 0%, rgba(18, 24, 43, 0.9) 70%)',
+              background: 'radial-gradient(ellipse at 80% 20%, rgba(225, 29, 72, 0.15) 0%, rgba(18, 24, 43, 0.95) 70%)',
               border: '1.5px solid rgba(225, 29, 72, 0.35)',
               borderRadius: 22,
               padding: 24,
@@ -588,14 +820,13 @@ export default function DashboardPage() {
                   <span style={{ fontSize: 24 }}>🏎️</span>
                 </div>
 
-                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 900, color: '#FFFFFF', marginBottom: 6 }}>
+                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 900, color: '#FFFFFF', marginBottom: 6 }}>
                   Ganesha Hill Climb Racing
                 </h3>
                 <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.5, marginBottom: 18 }}>
-                  Conquer Mount Kailash, Western Ghats, Varanasi Dunes, and Svarga! Upgrade engines, suspensions, tires, and amrit tanks with modak coins.
+                  Drive divine chariots across Kailash, Western Ghats, Varanasi & Svarga! Upgrade engines, suspensions, tires, and amrit fuel tanks.
                 </p>
 
-                {/* Mini Stats Bar */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
@@ -607,15 +838,15 @@ export default function DashboardPage() {
                 }}>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>BEST CLIMB</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#38BDF8' }}>{bestHillClimbDistance} m</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#38BDF8' }}>{bestHillClimbDistance} m</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>CHARIOTS</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#4ADE80' }}>4 / 4 Ready</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#4ADE80' }}>4 / 4 Open</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>STAGES</div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: '#C084FC' }}>4 / 4 Open</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#C084FC' }}>4 / 4 Open</div>
                   </div>
                 </div>
               </div>
@@ -639,15 +870,97 @@ export default function DashboardPage() {
                 }}
               >
                 <span>🚀</span>
-                <span>ENTER WORKSHOP & CLIMB</span>
+                <span>ENTER HILL CLIMB</span>
+              </Link>
+            </div>
+
+            {/* Card 4: Ganesh Idol Shop */}
+            <div style={{
+              background: 'radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.15) 0%, rgba(18, 24, 43, 0.95) 70%)',
+              border: '1.5px solid rgba(168, 85, 247, 0.35)',
+              borderRadius: 22,
+              padding: 24,
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1.5,
+                    color: '#C084FC',
+                    background: 'rgba(168, 85, 247, 0.15)',
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(168, 85, 247, 0.3)'
+                  }}>
+                    ARTISAN & CUSTOMIZER
+                  </span>
+                  <span style={{ fontSize: 24 }}>🎨</span>
+                </div>
+
+                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 900, color: '#FFFFFF', marginBottom: 6 }}>
+                  Ganesh Idol Shop & Studio
+                </h3>
+                <p style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.5, marginBottom: 18 }}>
+                  Handcraft custom Lord Ganesha deities with 12 sacred parts: crowns, pitambar silks, trishul weapons, lotus auras, and set as active avatar.
+                </p>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 10,
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  padding: 12,
+                  borderRadius: 14,
+                  marginBottom: 20
+                }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8' }}>DESIGNS</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#C084FC' }}>{savedDesigns.length || 3} Saved</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8' }}>PARTS</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FFD700' }}>12 Types</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: '#94A3B8' }}>AVATAR</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#4ADE80' }}>Synced</div>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/idol-shop"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: 12,
+                  background: 'linear-gradient(135deg, #7C3AED, #EC4899)',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  letterSpacing: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  textTransform: 'uppercase'
+                }}
+              >
+                <Palette size={16} />
+                <span>ENTER IDOL SHOP</span>
               </Link>
             </div>
           </div>
 
-          {/* Combined Chart & Fleet Preview */}
+          {/* Combined Trajectory & Fleet Snapshot */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))',
             gap: 24
           }}>
             {/* Score Progression Area Chart */}
@@ -663,12 +976,12 @@ export default function DashboardPage() {
                   <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, fontWeight: 800, color: '#FFD700' }}>
                     Score & Distance Trajectory
                   </h3>
-                  <span style={{ fontSize: 11, color: '#94A3B8' }}>Progress across recent runs</span>
+                  <span style={{ fontSize: 11, color: '#94A3B8' }}>Progression across recent multi-game runs</span>
                 </div>
                 <Trophy size={18} color="#FFB800" />
               </div>
 
-              <div style={{ width: '100%', height: 240 }}>
+              <div style={{ width: '100%', height: 240, minHeight: 240, minWidth: 0 }}>
                 {isMounted && (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
@@ -767,7 +1080,154 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 5. TAB CONTENT: 3D RUNNER DEEP DIVE */}
+      {/* 5. TAB CONTENT: TEMPLE RUN DEEP DIVE */}
+      {activeTab === 'temple_run' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Temple Run Highlights Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(7, 17, 38, 0.95) 0%, rgba(12, 25, 56, 0.95) 100%)',
+            border: '1.5px solid rgba(56, 189, 248, 0.4)',
+            borderRadius: 20,
+            padding: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 16
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{
+                width: 54,
+                height: 54,
+                borderRadius: 16,
+                background: 'rgba(6, 182, 212, 0.2)',
+                border: '1px solid #38BDF8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 28
+              }}>
+                ❄️
+              </div>
+              <div>
+                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 20, fontWeight: 900, color: '#38BDF8' }}>
+                  Vighnaharta Temple Run: Frozen Shadows
+                </h3>
+                <p style={{ fontSize: 12, color: '#BAE6FD', marginTop: 2 }}>
+                  Glacial Torana Archways • Cyan Spirit Braziers • 90° Turning • 108 Vighnas
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/temple-run"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '12px 24px',
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #0284C7, #06B6D4)',
+                color: '#FFFFFF',
+                fontWeight: 900,
+                fontSize: 13,
+                letterSpacing: 1,
+                boxShadow: '0 0 25px rgba(6, 182, 212, 0.5)',
+                textTransform: 'uppercase'
+              }}
+            >
+              <Snowflake size={16} />
+              <span>PLAY TEMPLE RUN NOW</span>
+            </Link>
+          </div>
+
+          {/* Temple Run 4 KPIs */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16
+          }}>
+            <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+              <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700 }}>FROZEN HIGH SCORE</div>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 900, color: '#38BDF8', marginTop: 4 }}>
+                {(templeStats?.best_score || 16800).toLocaleString()}
+              </div>
+            </div>
+            <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+              <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700 }}>LONGEST TEMPLE RUN</div>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 900, color: '#FFE57F', marginTop: 4 }}>
+                {((templeStats?.best_distance || 4250) / 1000).toFixed(2)} KM
+              </div>
+            </div>
+            <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+              <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700 }}>FROST VIGHNAS CLEARED</div>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 900, color: '#4ADE80', marginTop: 4 }}>
+                {templeStats?.total_vighnas || 86} Obstacles
+              </div>
+            </div>
+            <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+              <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700 }}>MAX TURN COMBO</div>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 900, color: '#F43F5E', marginTop: 4 }}>
+                x{templeStats?.best_combo || 9} Hits
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Sacred Worlds Progression */}
+          <div>
+            <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, color: '#FFFFFF', marginBottom: 14 }}>
+              SACRED TEMPLE WORLDS
+            </h4>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: 16
+            }}>
+              {[
+                { name: 'Frozen Shadows', icon: '❄️', desc: 'Glacial pillars, ice floor dividers, snowfall & frost demons', status: 'ACTIVE THEME', color: '#38BDF8' },
+                { name: 'Temple Street', icon: '🏛️', desc: 'Ancient carved stone toranas, hanging bells & braziers', status: 'UNLOCKED', color: '#FFD700' },
+                { name: 'Sacred Banyan', icon: '🌳', desc: 'Mighty hanging roots, mystical twilight canopy & fireflies', status: 'UNLOCKED', color: '#4ADE80' },
+                { name: 'Crystal Caves', icon: '💎', desc: 'Underground luminous amrit crystals & celestial echoes', status: 'UNLOCKED', color: '#C084FC' }
+              ].map(w => (
+                <div
+                  key={w.name}
+                  style={{
+                    background: 'rgba(18, 24, 43, 0.85)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: 18,
+                    padding: 18,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: 10
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 28 }}>{w.icon}</span>
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: w.color,
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      padding: '3px 8px',
+                      borderRadius: 6
+                    }}>
+                      {w.status}
+                    </span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF' }}>{w.name}</div>
+                    <p style={{ fontSize: 11, color: '#94A3B8', marginTop: 4, lineHeight: 1.4 }}>{w.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. TAB CONTENT: 3D RUNNER DEEP DIVE */}
       {activeTab === 'runner' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Runner Specific KPI Banner */}
@@ -805,7 +1265,7 @@ export default function DashboardPage() {
           {/* 3 Detailed Charts */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
             gap: 20
           }}>
             {/* Chart 1: Score Progression */}
@@ -818,7 +1278,7 @@ export default function DashboardPage() {
               <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, color: '#FFD700', marginBottom: 14 }}>
                 Score Growth per Run
               </h4>
-              <div style={{ width: '100%', height: 230 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0 }}>
                 {isMounted && (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
@@ -841,9 +1301,9 @@ export default function DashboardPage() {
               border: '1px solid rgba(255, 103, 31, 0.25)'
             }}>
               <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, color: '#FF884D', marginBottom: 14 }}>
-                Vighnas Removed (Obstacle Clears)
+                Vighnas Smashed (Obstacle Clears)
               </h4>
-              <div style={{ width: '100%', height: 230 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0 }}>
                 {isMounted && (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
@@ -868,7 +1328,7 @@ export default function DashboardPage() {
               <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, color: '#38BDF8', marginBottom: 14 }}>
                 Distance Traveled (KM)
               </h4>
-              <div style={{ width: '100%', height: 230 }}>
+              <div style={{ width: '100%', height: 230, minHeight: 230, minWidth: 0 }}>
                 {isMounted && (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
@@ -886,7 +1346,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 6. TAB CONTENT: HILL CLIMB RACING DEEP DIVE */}
+      {/* 7. TAB CONTENT: HILL CLIMB RACING DEEP DIVE */}
       {activeTab === 'hillclimb' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Header Summary Bar */}
@@ -1065,7 +1525,200 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 7. TAB CONTENT: RUN HISTORY & LOGS */}
+      {/* 8. TAB CONTENT: GANESH IDOL SHOP & SANCTUM */}
+      {activeTab === 'idol_shop' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Active Deity Showcase Card */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(35, 20, 60, 0.95) 0%, rgba(18, 14, 36, 0.95) 100%)',
+            border: '2px solid rgba(255, 215, 0, 0.4)',
+            borderRadius: 24,
+            padding: '24px 28px',
+            boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 24
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+              {/* Deity Preview */}
+              <div style={{
+                width: 140,
+                height: 140,
+                borderRadius: 24,
+                background: 'rgba(0, 0, 0, 0.4)',
+                border: '2px solid #FFD700',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                position: 'relative',
+                boxShadow: '0 0 30px rgba(255, 215, 0, 0.3)'
+              }}>
+                <GaneshaIdolRenderer
+                  config={activeAvatar?.config || DEFAULT_GANESHA_CONFIG}
+                  size="100%"
+                  showPlatform={true}
+                  animateIdle={true}
+                  rotation={0}
+                  tilt={0}
+                  zoom={0.9}
+                />
+              </div>
+
+              <div>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  background: 'rgba(255, 215, 0, 0.15)',
+                  border: '1px solid rgba(255, 215, 0, 0.3)',
+                  color: '#FFD700',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  marginBottom: 6
+                }}>
+                  <Sparkles size={12} />
+                  <span>ACTIVE SACRED AVATAR • सक्रिय देवता</span>
+                </div>
+
+                <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 24, fontWeight: 900, color: '#FFFFFF', margin: '2px 0 6px' }}>
+                  {activeAvatar?.name || 'Vighnaharta Suvarna Ganesha'}
+                </h3>
+
+                <p style={{ fontSize: 13, color: '#CBD5E1', maxWidth: 500, lineHeight: 1.5 }}>
+                  Royal handcrafted sacred idol with divine crown, pitambar silks, and trishul blessing weapon.
+                </p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10, fontSize: 12, color: '#4ADE80', fontWeight: 700 }}>
+                  <span>✓ Synced across Temple Run, 3D Runner & Leaderboards</span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/idol-shop"
+              style={{
+                padding: '14px 26px',
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #FFD700 0%, #FF671F 100%)',
+                color: '#080B14',
+                fontWeight: 900,
+                fontSize: 14,
+                letterSpacing: 1,
+                boxShadow: '0 0 25px rgba(255, 184, 0, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                textTransform: 'uppercase'
+              }}
+            >
+              <Palette size={18} fill="#080B14" />
+              <span>CUSTOMIZE IN IDOL SHOP</span>
+            </Link>
+          </div>
+
+          {/* Sanctum Designs Collection */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, color: '#FFFFFF' }}>
+                YOUR SANCTUM CREATIONS ({savedDesigns.length || 3} IDOLS)
+              </h4>
+              <Link href="/idol-shop" style={{ fontSize: 12, color: '#FFE57F', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span>+ CREATE NEW IDOL</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 16
+            }}>
+              {savedDesigns.map(design => {
+                const isSelected = activeAvatar?.id === design.id;
+
+                return (
+                  <div
+                    key={design.id}
+                    style={{
+                      background: 'rgba(18, 24, 43, 0.85)',
+                      border: isSelected ? '2px solid #FFD700' : '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: 18,
+                      padding: 16,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      boxShadow: isSelected ? '0 0 20px rgba(255, 215, 0, 0.3)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{
+                        width: 70,
+                        height: 70,
+                        borderRadius: 14,
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        border: '1px solid rgba(255, 215, 0, 0.3)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <GaneshaIdolRenderer
+                          config={design.config}
+                          size="100%"
+                          showPlatform={false}
+                          animateIdle={false}
+                          rotation={0}
+                          tilt={0}
+                          zoom={1.1}
+                        />
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#FFFFFF' }}>{design.name}</div>
+                        <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>{design.config.crown.replace('_', ' ')}</div>
+                        <div style={{ fontSize: 10, color: '#FFE57F', marginTop: 4 }}>
+                          {new Date(design.createdAt || Date.now()).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setActiveGaneshaAvatar(design.id);
+                        setActiveAvatar(design);
+                        setProfile(getStoredProfile());
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: 10,
+                        background: isSelected ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                        border: isSelected ? '1px solid #22C55E' : '1px solid rgba(255, 255, 255, 0.15)',
+                        color: isSelected ? '#4ADE80' : '#FFFFFF',
+                        fontSize: 11,
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {isSelected ? '✓ ACTIVE AVATAR' : 'SET AS ACTIVE'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. TAB CONTENT: RUN HISTORY & MULTI-GAME LOGS */}
       {activeTab === 'history' && (
         <div style={{
           background: 'rgba(18, 24, 43, 0.85)',
@@ -1074,16 +1727,61 @@ export default function DashboardPage() {
           border: '1px solid rgba(255, 255, 255, 0.1)',
           boxShadow: '0 8px 28px rgba(0, 0, 0, 0.5)'
         }}>
-          <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, color: '#FFD700', marginBottom: 16 }}>
-            Recent Expeditions & Run History
-          </h4>
+          {/* Header & Filter Controls */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 14,
+            marginBottom: 20
+          }}>
+            <div>
+              <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, color: '#FFD700' }}>
+                Recent Expeditions & Run History
+              </h4>
+              <span style={{ fontSize: 11, color: '#94A3B8' }}>
+                Chronological mission logs across all 4 sacred games
+              </span>
+            </div>
+
+            {/* Filter Pills */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 11, color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Filter size={12} /> Filter:
+              </span>
+              {[
+                { id: 'all', label: 'All Modes' },
+                { id: 'temple_run', label: '❄️ Temple Run' },
+                { id: 'runner', label: '🏃 3D Runner' },
+                { id: 'hillclimb', label: '🏎️ Hill Climb' }
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setHistoryFilter(f.id as any)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: historyFilter === f.id ? 'rgba(255, 184, 0, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                    border: historyFilter === f.id ? '1px solid #FFB800' : '1px solid rgba(255, 255, 255, 0.1)',
+                    color: historyFilter === f.id ? '#FFD700' : '#94A3B8',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: '1.5px solid rgba(255, 255, 255, 0.12)', color: '#94A3B8' }}>
                   <th style={{ padding: '12px 14px' }}>RUN #</th>
-                  <th style={{ padding: '12px 14px' }}>GAME MODE</th>
+                  <th style={{ padding: '12px 14px' }}>GAME EXPEDITION</th>
                   <th style={{ padding: '12px 14px' }}>SCORE</th>
                   <th style={{ padding: '12px 14px' }}>DISTANCE</th>
                   <th style={{ padding: '12px 14px' }}>MODAKS</th>
@@ -1092,58 +1790,72 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {(sessions && sessions.length > 0 ? sessions : [
-                  { id: '1', score: 12450, distance: 3800, modaks_collected: 103, vighnas_destroyed: 74, max_combo: 8 },
-                  { id: '2', score: 6500, distance: 2400, modaks_collected: 54, vighnas_destroyed: 35, max_combo: 5 },
-                  { id: '3', score: 3200, distance: 1200, modaks_collected: 28, vighnas_destroyed: 18, max_combo: 3 },
-                ]).map((s, idx) => (
-                  <tr
-                    key={s.id || idx}
-                    style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                      background: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
-                    }}
-                  >
-                    <td style={{ padding: '14px', fontWeight: 800, color: '#FFE57F' }}>
-                      #{sessions.length - idx}
-                    </td>
-                    <td style={{ padding: '14px', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>🏃</span>
-                      <span>3D Runner</span>
-                    </td>
-                    <td style={{ padding: '14px', fontWeight: 800, color: '#FFD700' }}>
-                      {s.score.toLocaleString()}
-                    </td>
-                    <td style={{ padding: '14px', color: '#38BDF8' }}>
-                      {((s.distance || 0) / 1000).toFixed(2)} KM
-                    </td>
-                    <td style={{ padding: '14px', color: '#FFA500' }}>
-                      {s.modaks_collected} 🍬
-                    </td>
-                    <td style={{ padding: '14px', color: '#FF671F' }}>
-                      {s.vighnas_destroyed} Vighnas (x{s.max_combo || 1})
-                    </td>
-                    <td style={{ padding: '14px' }}>
-                      <span style={{
-                        fontSize: 11,
-                        color: '#4ADE80',
-                        background: 'rgba(34, 197, 94, 0.15)',
-                        padding: '3px 8px',
-                        borderRadius: 6,
-                        fontWeight: 700
-                      }}>
-                        Completed
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {displaySessions.map((s, idx) => {
+                  const game = getGameLabel(s);
+                  const runNumber = displaySessions.length - idx;
+
+                  return (
+                    <tr
+                      key={s.id || idx}
+                      style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        background: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
+                      }}
+                    >
+                      <td style={{ padding: '14px', fontWeight: 800, color: '#FFE57F' }}>
+                        #{runNumber}
+                      </td>
+                      <td style={{ padding: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 18 }}>{game.icon}</span>
+                          <div>
+                            <div style={{
+                              fontWeight: 800,
+                              color: game.color,
+                              fontSize: 13
+                            }}>
+                              {game.name}
+                            </div>
+                            <div style={{ fontSize: 10, color: '#94A3B8' }}>
+                              {game.sub}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px', fontWeight: 800, color: '#FFD700' }}>
+                        {(s.score || 0).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '14px', color: '#38BDF8' }}>
+                        {((s.distance || 0) / 1000).toFixed(2)} KM
+                      </td>
+                      <td style={{ padding: '14px', color: '#FFA500' }}>
+                        {s.modaks_collected || 0} 🍬
+                      </td>
+                      <td style={{ padding: '14px', color: '#FF671F' }}>
+                        {s.vighnas_destroyed || 0} Vighnas (x{s.max_combo || 1})
+                      </td>
+                      <td style={{ padding: '14px' }}>
+                        <span style={{
+                          fontSize: 11,
+                          color: '#4ADE80',
+                          background: 'rgba(34, 197, 94, 0.15)',
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          fontWeight: 700
+                        }}>
+                          Completed
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* 8. FESTIVAL PULSE REALTIME TELEMETRY BAR */}
+      {/* 10. FESTIVAL PULSE REALTIME TELEMETRY BAR */}
       <div style={{
         background: 'rgba(18, 24, 43, 0.85)',
         border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -1171,7 +1883,7 @@ export default function DashboardPage() {
             </h3>
           </div>
           <span style={{ fontSize: 11, color: '#94A3B8' }}>
-            Realtime Community Telemetry
+            Realtime Community Telemetry Across 4 Games
           </span>
         </div>
 
@@ -1182,23 +1894,23 @@ export default function DashboardPage() {
         }}>
           <div>
             <div style={{ fontSize: 11, color: '#94A3B8' }}>PLAYERS ONLINE</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#10B981' }}>17 Live Devotees</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#10B981' }}>24 Live Devotees</div>
           </div>
           <div>
             <div style={{ fontSize: 11, color: '#94A3B8' }}>ACTIVE EXPEDITIONS</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#FFB800' }}>42 Worldwide Runs</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#FFB800' }}>56 Worldwide Runs</div>
           </div>
           <div>
             <div style={{ fontSize: 11, color: '#94A3B8' }}>VIGHNAS SMASHED TODAY</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#FF671F' }}>1,480 💥</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#FF671F' }}>1,840 💥</div>
           </div>
           <div>
             <div style={{ fontSize: 11, color: '#94A3B8' }}>MODAKS HARVESTED TODAY</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#FFA500' }}>8,920 🍬</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#FFA500' }}>11,420 🍬</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>TOP PILGRIMAGE CITY</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF' }}>📍 Mumbai</div>
+            <div style={{ fontSize: 11, color: '#94A3B8' }}>TOP SACRED REALM</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#38BDF8' }}>❄️ Frozen Shadows</div>
           </div>
         </div>
       </div>

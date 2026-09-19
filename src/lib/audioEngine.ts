@@ -30,8 +30,35 @@ class AudioEngine {
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
+  }
+
+  /**
+   * Generic procedural SFX tone generator
+   */
+  public playSfx(freq: number = 440, type: OscillatorType = 'sine', duration: number = 0.15) {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(this.sfxVolume * 0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.02);
+    } catch {}
   }
 
   public setMuted(muted: boolean) {
@@ -602,6 +629,240 @@ class AudioEngine {
       osc.start(now + i * 0.09);
       osc.stop(now + i * 0.09 + 0.85);
     });
+  }
+
+  /**
+   * Subtle sparkling chime when selecting an artisan shop item
+   */
+  public playShopItemSelect(isRare: boolean = false) {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const baseFreq = isRare ? 880 : 659.25; // E5 or A5
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(baseFreq, now);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.08);
+
+    gain.gain.setValueAtTime(this.sfxVolume * 0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.26);
+  }
+
+  /**
+   * Soft dull buzz when clicking a locked item
+   */
+  public playShopItemLocked() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.linearRampToValueAtTime(120, now + 0.12);
+
+    gain.gain.setValueAtTime(this.sfxVolume * 0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
+
+  /**
+   * Temple chime when unlocking or equipping a divine/rare item
+   */
+  public playShopItemUnlock() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const chords = [587.33, 739.99, 880, 1174.66]; // D maj / Re Ga Dha Re
+    chords.forEach((freq, idx) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+
+      gain.gain.setValueAtTime(0.001, now + idx * 0.06);
+      gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.4, now + idx * 0.06 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.06 + 0.7);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now + idx * 0.06);
+      osc.stop(now + idx * 0.06 + 0.75);
+    });
+  }
+
+  /**
+   * Magical swift swirl for 'Surprise Me' random generation
+   */
+  public playSurpriseMe() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const scale = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98];
+    scale.forEach((freq, i) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.04);
+
+      gain.gain.setValueAtTime(this.sfxVolume * 0.35, now + i * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.04 + 0.3);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now + i * 0.04);
+      osc.stop(now + i * 0.04 + 0.32);
+    });
+  }
+
+  /**
+   * Joyful temple bell and fanfare for Ganesha idol completion
+   */
+  public playShopComplete() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    // Bell resonance
+    const bellOsc = this.ctx.createOscillator();
+    const bellGain = this.ctx.createGain();
+    bellOsc.type = 'sine';
+    bellOsc.frequency.setValueAtTime(1046.5, now); // C6 bell
+    bellGain.gain.setValueAtTime(this.sfxVolume * 0.7, now);
+    bellGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+    bellOsc.connect(bellGain);
+    bellGain.connect(this.ctx.destination);
+    bellOsc.start(now);
+    bellOsc.stop(now + 1.85);
+
+    // Auspicious triad
+    const fanfare = [523.25, 659.25, 783.99, 1046.5];
+    fanfare.forEach((f, i) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + 0.2 + i * 0.1);
+
+      gain.gain.setValueAtTime(0.001, now + 0.2 + i * 0.1);
+      gain.gain.linearRampToValueAtTime(this.sfxVolume * 0.5, now + 0.2 + i * 0.1 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2 + i * 0.1 + 1.2);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now + 0.2 + i * 0.1);
+      osc.stop(now + 0.2 + i * 0.1 + 1.25);
+    });
+  }
+
+  /**
+   * Temple Run 90-degree corner turn whoosh & chime
+   */
+  public playCornerTurn() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    // Whoosh
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.15);
+
+    gain.gain.setValueAtTime(this.sfxVolume * 0.6, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.25);
+  }
+
+  /**
+   * Temple festival coin metallic ping
+   */
+  public playCoinCollect() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(987.77, now); // B5
+    osc.frequency.setValueAtTime(1318.51, now + 0.04); // E6
+
+    gain.gain.setValueAtTime(this.sfxVolume * 0.45, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
+  /**
+   * Sacred lotus blooming chime
+   */
+  public playLotusCollect() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    [440, 554.37, 659.25].forEach((freq, i) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.05);
+
+      gain.gain.setValueAtTime(this.sfxVolume * 0.38, now + i * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.05 + 0.4);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + i * 0.05);
+      osc.stop(now + i * 0.05 + 0.45);
+    });
+  }
+
+  /**
+   * 108 Vighnas completed grand victory fanfare
+   */
+  public playVictoryFanfare() {
+    this.playShopComplete();
   }
 }
 

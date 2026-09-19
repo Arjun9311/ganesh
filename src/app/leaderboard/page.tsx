@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Trophy, Flame, Play, Sparkles, MapPin, Search } from 'lucide-react';
 import { getLiveLeaderboard } from '@/lib/storage';
 import { LeaderboardEntry } from '@/types/database';
+import GaneshaAvatar from '@/components/idol-shop/GaneshaAvatar';
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -307,9 +308,7 @@ export default function LeaderboardPage() {
                   </td>
                   <td style={{ padding: '16px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: '1.4rem' }}>
-                        {entry.avatar === 'golden' ? '👑' : (entry.avatar === 'divine' ? '✨' : (entry.avatar === 'lotus' ? '🪷' : '🪔'))}
-                      </span>
+                      <GaneshaAvatar avatarId={entry.avatar} size={32} showBorder={isYou} />
                       <div>
                         <div style={{ fontWeight: 700, color: isYou ? 'var(--gold-light)' : '#FFFFFF' }}>
                           {entry.username} {isYou && <span style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', background: 'rgba(255, 184, 0, 0.2)', padding: '2px 6px', borderRadius: 4, marginLeft: 6 }}>YOU</span>}

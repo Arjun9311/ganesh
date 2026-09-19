@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Share2, Copy, Check, RotateCcw, Trophy, Sparkles, ArrowUpRight } from 'lucide-react';
 import { getStoredProfile, getStoredGameSessions, getStoredPlayerStats } from '@/lib/storage';
 import { GameSession, Profile, PlayerStats } from '@/types/database';
+import GaneshaAvatar from '@/components/idol-shop/GaneshaAvatar';
 
 export default function ResultsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -80,9 +81,7 @@ export default function ResultsPage() {
           border: '2px solid var(--gold-primary)',
           boxShadow: '0 0 35px rgba(255, 184, 0, 0.3)'
         }}>
-          <div style={{ fontSize: '3.2rem', filter: 'drop-shadow(0 0 16px #FFB800)' }}>
-            🐘
-          </div>
+          <GaneshaAvatar avatarId={profile?.avatar} size={72} showBorder={true} />
 
           <div>
             <div style={{

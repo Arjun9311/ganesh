@@ -73,7 +73,6 @@ export default function TouchControls({
         <button
           style={buttonStyle}
           onPointerDown={handleAction(onLeft)}
-          onTouchStart={handleAction(onLeft)}
           aria-label="Move Left"
           title="Move Left (A / ←)"
         >
@@ -83,7 +82,6 @@ export default function TouchControls({
         <button
           style={buttonStyle}
           onPointerDown={handleAction(onRight)}
-          onTouchStart={handleAction(onRight)}
           aria-label="Move Right"
           title="Move Right (D / →)"
         >
@@ -103,7 +101,6 @@ export default function TouchControls({
             fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)'
           }}
           onPointerDown={handleAction(onHoverboard)}
-          onTouchStart={handleAction(onHoverboard)}
           title="Deploy Mushika Hoverboard (Double Tap Space / Shift)"
           aria-label="Deploy Hoverboard"
         >
@@ -121,7 +118,6 @@ export default function TouchControls({
             color: '#38BDF8'
           }}
           onPointerDown={handleAction(onSlide)}
-          onTouchStart={handleAction(onSlide)}
           aria-label="Slide Down"
           title="Slide / Dive Down (S / ↓)"
         >
@@ -137,7 +133,6 @@ export default function TouchControls({
             boxShadow: '0 0 16px rgba(255, 184, 0, 0.5)'
           }}
           onPointerDown={handleAction(onJump)}
-          onTouchStart={handleAction(onJump)}
           aria-label="Jump Up"
           title="Jump Up (W / ↑ / Space)"
         >

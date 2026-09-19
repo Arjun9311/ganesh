@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Play, Trophy, Sparkles, Zap, Shield, ChevronRight, Flame, CloudSun } from 'lucide-react';
+import { Play, Trophy, Sparkles, Zap, Shield, ChevronRight, Flame, CloudSun, Palette } from 'lucide-react';
 import { fetchCityWeather } from '@/lib/weather';
 import { WeatherCondition } from '@/types/game';
 
@@ -125,17 +125,46 @@ export default function LandingPage() {
             marginTop: 12
           }}>
             <Link
-              href="/hill-climb"
+              href="/temple-run"
               className="btn-primary"
               style={{
                 fontSize: '1.15rem',
                 padding: '16px 36px',
                 gap: 12,
-                background: 'linear-gradient(135deg, #FF671F 0%, #FFB800 100%)'
+                background: 'linear-gradient(135deg, #FFB800 0%, #FF671F 100%)',
+                boxShadow: '0 0 35px rgba(255, 184, 0, 0.7)'
               }}
             >
-              <Flame size={22} fill="#080B14" />
-              <span>HILL CLIMB RACING</span>
+              <Play size={22} color="#080B14" fill="#080B14" />
+              <span>TEMPLE RUN (NEW)</span>
+            </Link>
+
+            <Link
+              href="/idol-shop"
+              className="btn-secondary"
+              style={{
+                fontSize: '1.15rem',
+                padding: '16px 36px',
+                gap: 12,
+                border: '1.5px solid rgba(255, 184, 0, 0.5)'
+              }}
+            >
+              <Palette size={22} color="#FFD700" />
+              <span>GANESH IDOL SHOP</span>
+            </Link>
+
+            <Link
+              href="/hill-climb"
+              className="btn-secondary"
+              style={{
+                fontSize: '1.15rem',
+                padding: '16px 36px',
+                gap: 12,
+                border: '1.5px solid rgba(255, 184, 0, 0.5)'
+              }}
+            >
+              <Flame size={22} color="#FF884D" />
+              <span>HILL CLIMB</span>
             </Link>
 
             <Link
@@ -238,7 +267,7 @@ export default function LandingPage() {
             CHOOSE YOUR SACRED EXPEDITION
           </h2>
           <p style={{ color: 'var(--text-muted)', marginTop: 8, fontSize: '1rem' }}>
-            Two distinct Ganesha gameplay experiences in one unified app.
+            Four distinct Ganesha gameplay experiences in one unified app.
           </p>
         </div>
 
@@ -247,7 +276,136 @@ export default function LandingPage() {
           gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
           gap: 28
         }}>
-          {/* Card 1: Hill Climb Racing */}
+          {/* Card 0: Vighnaharta Temple Run */}
+          <div style={{
+            background: 'linear-gradient(180deg, rgba(35, 20, 50, 0.95) 0%, rgba(16, 12, 32, 0.98) 100%)',
+            border: '2.5px solid #FFD700',
+            borderRadius: 24,
+            padding: 28,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.7), 0 0 35px rgba(255, 215, 0, 0.35)',
+            position: 'relative'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 18,
+              right: 18,
+              background: 'linear-gradient(90deg, #FF671F, #FFB800, #FFD700)',
+              color: '#080B14',
+              fontSize: 10,
+              fontWeight: 900,
+              padding: '3px 10px',
+              borderRadius: 6,
+              letterSpacing: 1
+            }}>
+              NEW 3D GAME
+            </div>
+
+            <div>
+              <div style={{ fontSize: '3rem', marginBottom: 16 }}>🐘🏛️⚡</div>
+              <div style={{ fontSize: '0.8rem', color: '#FFD700', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                SACRED RUNNER &amp; 90° CORNER TURNS
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', fontWeight: 900, color: '#FFFFFF', marginTop: 4, marginBottom: 12 }}>
+                Vighnaharta Temple Run
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 20 }}>
+                Sprint through procedural temple corridors, sacred banyan forests, and glowing crystal caves. Master sharp 90-degree corner turns, leap over barriers, slide beneath brass bells, smash destructible Vighnas, and clear all 108 Vighnas alongside Mushika!
+              </p>
+            </div>
+
+            <Link
+              href="/temple-run"
+              className="btn-primary"
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                padding: '14px',
+                fontSize: '0.95rem',
+                gap: 8,
+                background: 'linear-gradient(135deg, #FFB800 0%, #FF671F 100%)',
+                boxShadow: '0 0 25px rgba(255, 184, 0, 0.6)'
+              }}
+            >
+              <Play size={18} fill="currentColor" />
+              <span>PLAY TEMPLE RUN</span>
+            </Link>
+          </div>
+
+          {/* Card 1: Ganesh Idol Shop */}
+          <div style={{
+            background: 'linear-gradient(180deg, rgba(30, 26, 62, 0.95) 0%, rgba(16, 18, 40, 0.95) 100%)',
+            border: '2px solid #FFD700',
+            borderRadius: 24,
+            padding: 28,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            boxShadow: '0 16px 40px rgba(0,0,0,0.5), 0 0 25px rgba(255, 184, 0, 0.2)',
+            position: 'relative'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 18,
+              right: 18,
+              background: 'linear-gradient(90deg, #FFB800, #FF671F)',
+              color: '#080B14',
+              fontSize: 10,
+              fontWeight: 900,
+              padding: '3px 10px',
+              borderRadius: 6,
+              letterSpacing: 1
+            }}>
+              NEW MINI-GAME
+            </div>
+
+            <div>
+              <div style={{ fontSize: '3rem', marginBottom: 16 }}>🐘🎨✨</div>
+              <div style={{ fontSize: '0.8rem', color: '#FF884D', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                CUSTOMIZATION & ARTISAN SHOP
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.6rem', fontWeight: 900, color: '#FFFFFF', marginTop: 4, marginBottom: 12 }}>
+                Ganesh Idol Shop
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: 20 }}>
+                Handcraft your personalized Lord Ganesha idol with 12 authentic visual categories. Unlock rare festival crowns, jewels, and divine auras as you remove Vighnas!
+              </p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+                {['12 Parts', '3D Rotate & Zoom', 'Surprise Me', 'Use as Avatar'].map(f => (
+                  <span key={f} style={{
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    background: 'rgba(255, 184, 0, 0.1)',
+                    border: '1px solid rgba(255, 184, 0, 0.25)',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: '#FFE57F'
+                  }}>
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <Link
+              href="/idol-shop"
+              className="btn-primary"
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #FFD700 0%, #FF671F 100%)',
+                color: '#080B14',
+                fontWeight: 900
+              }}
+            >
+              <Palette size={18} />
+              <span>CUSTOMIZE GANESHA</span>
+            </Link>
+          </div>
+
+          {/* Card 2: Hill Climb Racing */}
           <div style={{
             background: 'linear-gradient(180deg, rgba(26, 34, 56, 0.9) 0%, rgba(14, 20, 36, 0.9) 100%)',
             border: '2px solid rgba(255, 184, 0, 0.45)',

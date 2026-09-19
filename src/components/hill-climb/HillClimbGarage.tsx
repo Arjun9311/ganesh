@@ -102,7 +102,7 @@ export default function HillClimbGarage({
   };
 
   const handleUpgrade = (part: keyof VehicleUpgrades) => {
-    const currentLevel = vehicleData.upgrades[part];
+    const currentLevel = vehicleData.upgrades?.[part] || 1;
     if (currentLevel >= 10) return;
     const cost = getUpgradeCost(currentLevel);
 
@@ -113,17 +113,21 @@ export default function HillClimbGarage({
 
     hillClimbAudio.playStunt(); // reward chime
     onUpdateSave(prev => {
-      const currentVeh = prev.vehicles[selectedVehicle];
+      const currentVeh = prev.vehicles?.[selectedVehicle] || {
+        unlocked: true,
+        upgrades: { engine: 1, suspension: 1, tires: 1, fuelTank: 1 }
+      };
+      const currentUpgrades = currentVeh.upgrades || { engine: 1, suspension: 1, tires: 1, fuelTank: 1 };
       return {
         ...prev,
-        coins: prev.coins - cost,
+        coins: Math.max(0, prev.coins - cost),
         vehicles: {
           ...prev.vehicles,
           [selectedVehicle]: {
             ...currentVeh,
             upgrades: {
-              ...currentVeh.upgrades,
-              [part]: currentVeh.upgrades[part] + 1
+              ...currentUpgrades,
+              [part]: (currentUpgrades[part] || 1) + 1
             }
           }
         }
@@ -141,12 +145,12 @@ export default function HillClimbGarage({
     hillClimbAudio.playStunt();
     onUpdateSave(prev => ({
       ...prev,
-      coins: prev.coins - veh.basePrice,
+      coins: Math.max(0, prev.coins - veh.basePrice),
       selectedVehicle: vehId,
       vehicles: {
         ...prev.vehicles,
         [vehId]: {
-          ...prev.vehicles[vehId],
+          ...(prev.vehicles?.[vehId] || { upgrades: { engine: 1, suspension: 1, tires: 1, fuelTank: 1 } }),
           unlocked: true
         }
       }
@@ -163,12 +167,12 @@ export default function HillClimbGarage({
     hillClimbAudio.playStunt();
     onUpdateSave(prev => ({
       ...prev,
-      coins: prev.coins - stg.unlockPrice,
+      coins: Math.max(0, prev.coins - stg.unlockPrice),
       selectedStage: stgId,
       stages: {
         ...prev.stages,
         [stgId]: {
-          ...prev.stages[stgId],
+          ...(prev.stages?.[stgId] || { bestDistance: 0, highScore: 0 }),
           unlocked: true
         }
       }

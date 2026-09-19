@@ -21,6 +21,7 @@ export interface GameSession {
   max_combo: number;
   weather: string;
   environment: string;
+  game_mode?: string;
   completed: boolean;
   created_at: string;
 }
