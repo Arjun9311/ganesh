@@ -471,25 +471,25 @@ export default function LandingPage() {
 
           {/* Card 2: Hill Climb Racing */}
           <div style={{
-            background: 'linear-gradient(180deg, rgba(26, 34, 56, 0.9) 0%, rgba(14, 20, 36, 0.9) 100%)',
-            border: '2px solid rgba(255, 184, 0, 0.45)',
+            background: 'linear-gradient(180deg, rgba(26, 34, 56, 0.95) 0%, rgba(14, 20, 36, 0.98) 100%)',
+            border: '2.5px solid #FFD700',
             borderRadius: 24,
             padding: 28,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.7), 0 0 35px rgba(255, 215, 0, 0.35)',
             position: 'relative'
           }}>
             <div style={{
               position: 'absolute',
-              top: 20,
-              right: 20,
+              top: 18,
+              right: 18,
               background: 'linear-gradient(90deg, #FF671F, #E11D48)',
               color: '#FFF',
               fontSize: 10,
               fontWeight: 900,
-              padding: '4px 10px',
+              padding: '3px 10px',
               borderRadius: 6,
               letterSpacing: 1
             }}>
@@ -524,7 +524,10 @@ export default function LandingPage() {
                 padding: '14px 20px',
                 fontSize: '1rem',
                 justifyContent: 'center',
-                background: 'linear-gradient(135deg, #FF671F 0%, #FFB800 100%)'
+                background: 'linear-gradient(135deg, #FF671F 0%, #FFB800 100%)',
+                boxShadow: '0 0 25px rgba(255, 184, 0, 0.6)',
+                color: '#080B14',
+                fontWeight: 900
               }}
             >
               <Flame size={18} fill="#080B14" />
@@ -532,17 +535,33 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Card 2: 3D Endless Runner */}
+          {/* Card 3: 3D Endless Runner */}
           <div style={{
-            background: 'linear-gradient(180deg, rgba(26, 34, 56, 0.9) 0%, rgba(14, 20, 36, 0.9) 100%)',
-            border: '2px solid rgba(255, 184, 0, 0.3)',
+            background: 'linear-gradient(180deg, rgba(26, 34, 56, 0.95) 0%, rgba(14, 20, 36, 0.98) 100%)',
+            border: '2.5px solid #FFD700',
             borderRadius: 24,
             padding: 28,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 16px 40px rgba(0,0,0,0.5)'
+            boxShadow: '0 20px 50px rgba(0,0,0,0.7), 0 0 35px rgba(255, 215, 0, 0.35)',
+            position: 'relative'
           }}>
+            <div style={{
+              position: 'absolute',
+              top: 18,
+              right: 18,
+              background: 'linear-gradient(90deg, #FFB800, #FF671F)',
+              color: '#080B14',
+              fontSize: 10,
+              fontWeight: 900,
+              padding: '3px 10px',
+              borderRadius: 6,
+              letterSpacing: 1
+            }}>
+              POPULAR
+            </div>
+
             <div>
               <div style={{ fontSize: 44, marginBottom: 14 }}>🏃‍♂️🪔</div>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#FFB800', letterSpacing: 1.2, textTransform: 'uppercase' }}>
@@ -570,7 +589,11 @@ export default function LandingPage() {
                 width: '100%',
                 padding: '14px 20px',
                 fontSize: '1rem',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #FFB800 0%, #FF671F 100%)',
+                boxShadow: '0 0 25px rgba(255, 184, 0, 0.6)',
+                color: '#080B14',
+                fontWeight: 900
               }}
             >
               <Play size={18} fill="#080B14" />
