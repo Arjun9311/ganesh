@@ -277,20 +277,6 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Embedded CSS for clean Breakpoints */}
-      <style jsx>{`
-        @media (max-width: 1200px) {
-          .hidden-mobile {
-            display: none !important;
-          }
-          .mobile-menu-btn {
-            display: flex !important;
-          }
-          .mobile-only-btn {
-            display: flex !important;
-          }
-        }
-      `}</style>
     </nav>
   );
 }

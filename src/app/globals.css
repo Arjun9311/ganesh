@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
 :root {
   /* Divine Indian Festival Color Palette */
   --bg-midnight: #080B14;
@@ -33,8 +31,8 @@
   --border-gold: rgba(255, 184, 0, 0.3);
   --border-glass: rgba(255, 255, 255, 0.08);
 
-  --font-serif: 'Cinzel', serif, system-ui;
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: var(--font-serif, 'Cinzel', serif, system-ui);
+  --font-sans: var(--font-sans, 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
 
   --shadow-gold: 0 0 25px rgba(255, 184, 0, 0.25);
   --shadow-divine: 0 0 40px rgba(255, 215, 0, 0.45);
@@ -58,7 +56,13 @@ html {
   min-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -307,4 +311,217 @@ button {
 .touch-scale:active {
   transform: scale(0.96);
 }
+
+/* ==========================================================================
+   Global Navbar & Mobile Bottom Nav Responsive Rules
+   (Declared globally to eliminate client-side hydration layout shifts / flash)
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  .mobile-only-btn {
+    display: flex !important;
+  }
+}
+
+.mobile-bottom-nav-container {
+  display: none !important;
+}
+@media (max-width: 768px) {
+  .mobile-bottom-nav-container {
+    display: block !important;
+  }
+}
+
+/* ==========================================================================
+   Continuous Top-to-Bottom Divine Background Animations
+   (Pre-compiled in global CSS for instant smooth rendering without lag)
+   ========================================================================== */
+.ambient-light-stream {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 300%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 103, 31, 0.07) 0%,
+    rgba(255, 184, 0, 0.04) 20%,
+    transparent 45%,
+    rgba(255, 103, 31, 0.07) 65%,
+    rgba(255, 184, 0, 0.04) 85%,
+    transparent 100%
+  );
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  animation: verticalStream 26s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes verticalStream {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 33.333%, 0);
+  }
+}
+
+.ganesh-cascade-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.idol-cascade-item {
+  position: absolute;
+  top: -240px;
+  color: #FFB800;
+  opacity: 0;
+  filter: drop-shadow(0 0 16px rgba(255, 184, 0, 0.35));
+  will-change: transform;
+  animation: dropIdolTopToBottom 22s linear infinite;
+  pointer-events: none;
+}
+
+.idol-col-left-1 { left: 1.5%; }
+.idol-col-left-2 { left: 9%; }
+.idol-col-right-1 { right: 1.5%; }
+.idol-col-right-2 { right: 9%; }
+.idol-col-mid-left { left: 22%; opacity: 0.16; }
+.idol-col-mid-right { right: 22%; opacity: 0.16; }
+
+.idol-delay-0 { animation-delay: 0s; animation-duration: 22s; }
+.idol-delay-6 { animation-delay: -6s; animation-duration: 25s; }
+.idol-delay-9 { animation-delay: -9s; animation-duration: 28s; }
+.idol-delay-12 { animation-delay: -12s; animation-duration: 21s; }
+.idol-delay-15 { animation-delay: -15s; animation-duration: 26s; }
+.idol-delay-18 { animation-delay: -18s; animation-duration: 23s; }
+
+@keyframes dropIdolTopToBottom {
+  0% {
+    transform: translate3d(0, -240px, 0) rotate(-3deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.28;
+  }
+  85% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: translate3d(0, 115vh, 0) rotate(3deg);
+    opacity: 0;
+  }
+}
+
+.halo-spin {
+  transform-origin: 100px 100px;
+  animation: spinAura 50s linear infinite;
+}
+.halo-spin-reverse {
+  transform-origin: 100px 100px;
+  animation: spinAuraReverse 65s linear infinite;
+}
+
+@keyframes spinAura {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes spinAuraReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.festive-cascade-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.cascade-item {
+  position: absolute;
+  top: -60px;
+  will-change: transform;
+  animation: dropTopToBottom 18s linear infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ornament-glow {
+  display: inline-block;
+  font-size: clamp(1.4rem, 2vw, 2.4rem);
+  opacity: 0.32;
+  filter: drop-shadow(0 0 10px rgba(255, 184, 0, 0.45));
+  animation: spinSlow 12s ease-in-out infinite alternate;
+}
+
+@keyframes spinSlow {
+  0% { rotate: -10deg; scale: 0.9; }
+  100% { rotate: 15deg; scale: 1.1; }
+}
+
+.c-col-1 { left: 8%; }
+.c-col-2 { left: 24%; }
+.c-col-3 { left: 45%; }
+.c-col-4 { left: 65%; }
+.c-col-5 { left: 82%; }
+.c-col-6 { left: 93%; }
+
+.c-delay-0 { animation-delay: 0s; animation-duration: 17s; }
+.c-delay-2 { animation-delay: -3s; animation-duration: 20s; }
+.c-delay-3 { animation-delay: -5s; animation-duration: 16s; }
+.c-delay-4 { animation-delay: -8s; animation-duration: 19s; }
+.c-delay-6 { animation-delay: -11s; animation-duration: 22s; }
+.c-delay-7 { animation-delay: -14s; animation-duration: 18s; }
+.c-delay-9 { animation-delay: -2s; animation-duration: 21s; }
+.c-delay-11 { animation-delay: -7s; animation-duration: 17s; }
+.c-delay-12 { animation-delay: -10s; animation-duration: 23s; }
+.c-delay-13 { animation-delay: -13s; animation-duration: 19s; }
+.c-delay-14 { animation-delay: -6s; animation-duration: 20s; }
+.c-delay-15 { animation-delay: -15s; animation-duration: 18s; }
+
+@keyframes dropTopToBottom {
+  0% {
+    transform: translate3d(0, -60px, 0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.35;
+  }
+  88% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate3d(0, 108vh, 0);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-light-stream,
+  .cascade-item,
+  .idol-cascade-item,
+  .halo-spin,
+  .halo-spin-reverse,
+  .ornament-glow {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 

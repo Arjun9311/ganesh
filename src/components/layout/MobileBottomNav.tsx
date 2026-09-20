@@ -128,14 +128,6 @@ export default function MobileBottomNav() {
         })}
       </nav>
 
-      {/* Embedded Responsive Media Query to only show on mobile */}
-      <style jsx>{`
-        @media (min-width: 769px) {
-          .mobile-bottom-nav-container {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

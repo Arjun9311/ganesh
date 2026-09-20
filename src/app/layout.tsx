@@ -1,9 +1,24 @@
 import type { Metadata, Viewport } from 'next';
+import { Cinzel, Outfit } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import DivineBackground from '@/components/ui/DivineBackground';
 import NewUserOnboardingModal from '@/components/modals/NewUserOnboardingModal';
+
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['600', '700', '800', '900'],
+  variable: '--font-serif',
+  display: 'swap',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -29,8 +44,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className={`${cinzel.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className={outfit.className} suppressHydrationWarning>
         <DivineBackground />
         <Navbar />
         <main>{children}</main>

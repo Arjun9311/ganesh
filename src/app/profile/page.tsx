@@ -4,19 +4,37 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { User, MapPin, Trophy, Sparkles, Award, Edit3, Check, X, Shield, Play, Palette, RotateCcw } from 'lucide-react';
 import { getStoredProfile, saveStoredProfile, getStoredPlayerStats, getSavedGaneshaDesigns, getActiveGaneshaAvatar } from '@/lib/storage';
-import { getAchievementsList, AchievementDef } from '@/lib/achievements';
+import { getAchievementsList, AchievementDef, ALL_ACHIEVEMENTS } from '@/lib/achievements';
 import { Profile, PlayerStats } from '@/types/database';
 import { FESTIVAL_CITIES } from '@/lib/weather';
 import GaneshaAvatar from '@/components/idol-shop/GaneshaAvatar';
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [stats, setStats] = useState<PlayerStats | null>(null);
-  const [achievements, setAchievements] = useState<AchievementDef[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    if (typeof window !== 'undefined') return getStoredProfile();
+    return null;
+  });
+  const [stats, setStats] = useState<PlayerStats | null>(() => {
+    if (typeof window !== 'undefined') return getStoredPlayerStats();
+    return null;
+  });
+  const [achievements, setAchievements] = useState<AchievementDef[]>(() => {
+    if (typeof window !== 'undefined') return getAchievementsList();
+    return ALL_ACHIEVEMENTS;
+  });
   const [isEditing, setIsEditing] = useState(false);
-  const [editUsername, setEditUsername] = useState('');
-  const [editCity, setEditCity] = useState('Mumbai');
-  const [editAvatar, setEditAvatar] = useState('saffron');
+  const [editUsername, setEditUsername] = useState(() => {
+    if (typeof window !== 'undefined') return getStoredProfile().username || 'Sidharth';
+    return 'Sidharth';
+  });
+  const [editCity, setEditCity] = useState(() => {
+    if (typeof window !== 'undefined') return getStoredProfile().city || 'Hyderabad';
+    return 'Hyderabad';
+  });
+  const [editAvatar, setEditAvatar] = useState(() => {
+    if (typeof window !== 'undefined') return getStoredProfile().avatar || 'saffron';
+    return 'saffron';
+  });
 
   const loadData = () => {
     const current = getStoredProfile();
