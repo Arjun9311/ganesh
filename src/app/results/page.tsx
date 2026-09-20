@@ -22,12 +22,12 @@ export default function ResultsPage() {
     setStats(getStoredPlayerStats());
   }, []);
 
-  const score = lastSession?.score || 12450;
-  const vighnas = lastSession?.vighnas_destroyed ?? 74;
-  const distance = lastSession?.distance || 3800;
-  const modaks = lastSession?.modaks_collected ?? 103;
-  const combo = lastSession?.max_combo || 8;
-  const username = profile?.username || 'Arjun Devotee';
+  const score = lastSession?.score ?? 0;
+  const vighnas = lastSession?.vighnas_destroyed ?? 0;
+  const distance = lastSession?.distance ?? 0;
+  const modaks = lastSession?.modaks_collected ?? 0;
+  const combo = lastSession?.max_combo ?? 0;
+  const username = profile?.username || 'Sidharth';
   const isPersonalBest = Boolean(lastSession && stats?.best_score && lastSession.score >= stats.best_score);
 
   const getRunAgainHref = () => {
@@ -149,7 +149,7 @@ export default function ResultsPage() {
               </div>
             ) : (
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
-                Personal Best: <strong style={{ color: 'var(--gold-primary)' }}>{(stats?.best_score || 12450).toLocaleString()}</strong>
+                Personal Best: <strong style={{ color: 'var(--gold-primary)' }}>{(stats?.best_score ?? 0).toLocaleString()}</strong>
               </div>
             )}
           </div>

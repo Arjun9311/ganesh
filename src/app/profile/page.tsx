@@ -104,26 +104,6 @@ export default function ProfilePage() {
                 >
                   <Edit3 size={15} />
                 </button>
-
-                <Link
-                  href="/idol-shop"
-                  title="Customize Idol in Artisan Shop"
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: 'var(--radius-full)',
-                    background: 'linear-gradient(135deg, rgba(255, 184, 0, 0.2) 0%, rgba(255, 103, 31, 0.25) 100%)',
-                    border: '1px solid var(--border-gold)',
-                    color: 'var(--gold-light)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontSize: '0.8rem',
-                    fontWeight: 700
-                  }}
-                >
-                  <Palette size={14} color="#FFD700" />
-                  <span>IDOL SHOP</span>
-                </Link>
               </div>
 
               <div style={{
@@ -141,22 +121,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <button
-              onClick={() => window.dispatchEvent(new Event('vighnaharta_open_onboarding'))}
-              className="btn-secondary"
-              style={{
-                padding: '12px 20px',
-                fontSize: '0.85rem',
-                gap: 8,
-                borderRadius: 'var(--radius-full)'
-              }}
-              title="Reset game progression to 0 and re-enter runner details"
-            >
-              <RotateCcw size={16} />
-              <span>RESET PROGRESSION</span>
-            </button>
-
+          <div>
             <Link href="/game" className="btn-primary" style={{ padding: '12px 28px' }}>
               <Play size={18} fill="#080B14" />
               <span>PLAY RUN</span>
@@ -213,7 +178,7 @@ export default function ProfilePage() {
         <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>BEST SCORE</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 900, color: 'var(--gold-light)', marginTop: 4 }}>
-            {(stats?.best_score || 12450).toLocaleString()}
+            {(stats?.best_score ?? 0).toLocaleString()}
           </div>
         </div>
 
@@ -227,14 +192,14 @@ export default function ProfilePage() {
         <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>TOTAL DISTANCE</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 900, color: '#FFFFFF', marginTop: 4 }}>
-            {(((stats?.total_distance || 6800)) / 1000).toFixed(2)} KM
+            {(((stats?.total_distance ?? 0)) / 1000).toFixed(2)} KM
           </div>
         </div>
 
         <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>GAMES RUN</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 900, color: 'var(--saffron)', marginTop: 4 }}>
-            {stats?.games_played || 3}
+            {stats?.games_played ?? 0}
           </div>
         </div>
       </div>

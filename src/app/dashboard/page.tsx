@@ -549,10 +549,10 @@ export default function DashboardPage() {
             color: '#10B981',
             marginTop: 6
           }}>
-            {(stats?.best_score || 12450).toLocaleString()}
+            {(stats?.best_score ?? 0).toLocaleString()}
           </div>
           <div style={{ fontSize: '0.72rem', color: '#FFB800', marginTop: 4 }}>
-            💥 x{stats?.best_combo || 8} Combo Streak
+            💥 x{stats?.best_combo ?? 0} Combo Streak
           </div>
         </div>
 
@@ -828,15 +828,15 @@ export default function DashboardPage() {
                 }}>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>HIGH SCORE</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FFD700' }}>{(stats?.best_score || 12450).toLocaleString()}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FFD700' }}>{(stats?.best_score ?? 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>MAX COMBO</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FF671F' }}>x{stats?.best_combo || 8}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#FF671F' }}>x{stats?.best_combo ?? 0}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: 10, color: '#94A3B8' }}>RUNS</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: '#38BDF8' }}>{stats?.games_played || 3}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: '#38BDF8' }}>{stats?.games_played ?? 0}</div>
                   </div>
                 </div>
               </div>
@@ -1311,13 +1311,13 @@ export default function DashboardPage() {
             <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(255, 255, 255, 0.1)' }}>
               <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700 }}>PERSONAL BEST SCORE</div>
               <div style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 900, color: '#FFD700', marginTop: 4 }}>
-                {(stats?.best_score || 12450).toLocaleString()}
+                {(stats?.best_score ?? 0).toLocaleString()}
               </div>
             </div>
             <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(255, 255, 255, 0.1)' }}>
               <div style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700 }}>MAX COMBO STREAK</div>
               <div style={{ fontFamily: "'Cinzel', serif", fontSize: 26, fontWeight: 900, color: '#FF671F', marginTop: 4 }}>
-                x{stats?.best_combo || 8} Hits
+                x{stats?.best_combo ?? 0} Hits
               </div>
             </div>
             <div style={{ background: 'rgba(18, 24, 43, 0.85)', borderRadius: 16, padding: 18, border: '1px solid rgba(255, 255, 255, 0.1)' }}>
