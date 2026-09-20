@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { User, MapPin, Trophy, Sparkles, Award, Edit3, Check, X, Shield, Play, Palette } from 'lucide-react';
+import { User, MapPin, Trophy, Sparkles, Award, Edit3, Check, X, Shield, Play, Palette, RotateCcw } from 'lucide-react';
 import { getStoredProfile, saveStoredProfile, getStoredPlayerStats, getSavedGaneshaDesigns, getActiveGaneshaAvatar } from '@/lib/storage';
 import { getAchievementsList, AchievementDef } from '@/lib/achievements';
 import { Profile, PlayerStats } from '@/types/database';
@@ -18,15 +18,21 @@ export default function ProfilePage() {
   const [editCity, setEditCity] = useState('Mumbai');
   const [editAvatar, setEditAvatar] = useState('saffron');
 
-  useEffect(() => {
+  const loadData = () => {
     const current = getStoredProfile();
     setProfile(current);
-    setEditUsername(current.username || 'Arjun Devotee');
-    setEditCity(current.city || 'Mumbai');
+    setEditUsername(current.username || 'Sidharth');
+    setEditCity(current.city || 'Hyderabad');
     setEditAvatar(current.avatar || 'saffron');
 
     setStats(getStoredPlayerStats());
     setAchievements(getAchievementsList());
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('vighnaharta_profile_updated', loadData);
+    return () => window.removeEventListener('vighnaharta_profile_updated', loadData);
   }, []);
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -135,10 +141,27 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <Link href="/game" className="btn-primary" style={{ padding: '12px 28px' }}>
-            <Play size={18} fill="#080B14" />
-            <span>PLAY RUN</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => window.dispatchEvent(new Event('vighnaharta_open_onboarding'))}
+              className="btn-secondary"
+              style={{
+                padding: '12px 20px',
+                fontSize: '0.85rem',
+                gap: 8,
+                borderRadius: 'var(--radius-full)'
+              }}
+              title="Reset game progression to 0 and re-enter runner details"
+            >
+              <RotateCcw size={16} />
+              <span>RESET PROGRESSION</span>
+            </button>
+
+            <Link href="/game" className="btn-primary" style={{ padding: '12px 28px' }}>
+              <Play size={18} fill="#080B14" />
+              <span>PLAY RUN</span>
+            </Link>
+          </div>
         </div>
 
         {/* 108 Vighnas Progression Banner */}

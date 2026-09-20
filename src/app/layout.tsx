@@ -3,6 +3,7 @@ import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import DivineBackground from '@/components/ui/DivineBackground';
+import NewUserOnboardingModal from '@/components/modals/NewUserOnboardingModal';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -34,6 +35,7 @@ export default function RootLayout({
         <Navbar />
         <main>{children}</main>
         <MobileBottomNav />
+        <NewUserOnboardingModal />
       </body>
     </html>
   );

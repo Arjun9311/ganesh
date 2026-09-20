@@ -40,106 +40,84 @@ export function saveStoredProfile(profile: Profile): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    window.dispatchEvent(new Event('vighnaharta_profile_updated'));
+  } catch {}
+}
+
+export const ONBOARDED_KEY = 'vighnaharta_onboarded';
+
+export function isOnboarded(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    return localStorage.getItem(ONBOARDED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function setOnboarded(val: boolean = true): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (val) {
+      localStorage.setItem(ONBOARDED_KEY, 'true');
+    } else {
+      localStorage.removeItem(ONBOARDED_KEY);
+    }
+    window.dispatchEvent(new Event('vighnaharta_profile_updated'));
+  } catch {}
+}
+
+export function resetPlayerProgression(): void {
+  if (typeof window === 'undefined') return;
+  const profile = getStoredProfile();
+  const zeroStats: PlayerStats = {
+    user_id: profile.id,
+    total_score: 0,
+    best_score: 0,
+    total_distance: 0,
+    total_vighnas: 0,
+    total_modaks: 0,
+    best_combo: 0,
+    games_played: 0,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify(zeroStats));
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify([]));
+    window.dispatchEvent(new Event('vighnaharta_profile_updated'));
   } catch {}
 }
 
 export function getStoredPlayerStats(): PlayerStats {
   const profile = getStoredProfile();
-  const defaultStats: PlayerStats = {
+  const zeroStats: PlayerStats = {
     user_id: profile.id,
-    total_score: 18450,
-    best_score: 12450,
-    total_distance: 6800,
-    total_vighnas: 74,
-    total_modaks: 103,
-    best_combo: 8,
-    games_played: 3,
+    total_score: 0,
+    best_score: 0,
+    total_distance: 0,
+    total_vighnas: 0,
+    total_modaks: 0,
+    best_combo: 0,
+    games_played: 0,
     updated_at: new Date().toISOString()
   };
 
-  if (typeof window === 'undefined') return defaultStats;
+  if (typeof window === 'undefined') return zeroStats;
   try {
     const raw = localStorage.getItem(STATS_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return defaultStats;
+  return zeroStats;
 }
 
 export function getStoredGameSessions(): GameSession[] {
-  const profile = getStoredProfile();
-  const defaultSessions: GameSession[] = [
-    {
-      id: 'sess-tr-1',
-      user_id: profile.id,
-      game_mode: 'temple_run',
-      score: 16800,
-      distance: 4250,
-      duration: 165,
-      vighnas_destroyed: 86,
-      modaks_collected: 142,
-      powerups_collected: 8,
-      max_combo: 9,
-      weather: 'Frozen Shadows',
-      environment: 'Frozen Temple Path',
-      completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString()
-    },
-    {
-      id: 'sess-run-1',
-      user_id: profile.id,
-      game_mode: 'runner',
-      score: 12450,
-      distance: 3800,
-      duration: 145,
-      vighnas_destroyed: 74,
-      modaks_collected: 103,
-      powerups_collected: 5,
-      max_combo: 8,
-      weather: 'Sunny',
-      environment: 'Festival Street',
-      completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
-    },
-    {
-      id: 'sess-hc-1',
-      user_id: profile.id,
-      game_mode: 'hillclimb',
-      score: 8200,
-      distance: 1450,
-      duration: 120,
-      vighnas_destroyed: 24,
-      modaks_collected: 65,
-      powerups_collected: 3,
-      max_combo: 4,
-      weather: 'Alpine Snow',
-      environment: 'Kailash Foothills',
-      completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString()
-    },
-    {
-      id: 'sess-run-2',
-      user_id: profile.id,
-      game_mode: 'runner',
-      score: 6000,
-      distance: 3000,
-      duration: 110,
-      vighnas_destroyed: 35,
-      modaks_collected: 54,
-      powerups_collected: 2,
-      max_combo: 5,
-      weather: 'Sunset',
-      environment: 'Temple Street',
-      completed: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 7).toISOString()
-    }
-  ];
-
-  if (typeof window === 'undefined') return defaultSessions;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(SESSIONS_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return defaultSessions;
+  return [];
 }
 
 export async function recordGameSession(session: Omit<GameSession, 'id' | 'created_at'>): Promise<GameSession> {
