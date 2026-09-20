@@ -19,6 +19,13 @@ export class HillClimbAudioEngine {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('vighnaharta_muted') ?? localStorage.getItem('vighnaharta_audio_muted');
       this.isMuted = stored === 'true';
+
+      const unlockAudio = () => {
+        this.initContext();
+      };
+      window.addEventListener('pointerdown', unlockAudio, { once: true });
+      window.addEventListener('keydown', unlockAudio, { once: true });
+      window.addEventListener('touchstart', unlockAudio, { once: true });
     }
   }
 

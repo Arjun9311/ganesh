@@ -3,72 +3,65 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Trophy, BarChart3, User, Volume2, VolumeX, CloudSun, Play, Flame, Menu, X, Palette, Snowflake } from 'lucide-react';
-import { audioEngine } from '@/lib/audioEngine';
-import { fetchCityWeather } from '@/lib/weather';
-import { getStoredProfile } from '@/lib/storage';
-import { WeatherCondition } from '@/types/game';
+import { LucideIcon, Sparkles, Trophy, BarChart3, User, Play, Flame, Menu, X, Palette, Snowflake } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [isMuted, setIsMuted] = useState(false);
-  const [weather, setWeather] = useState<WeatherCondition | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setIsMuted(audioEngine.getMuted());
-    const profile = getStoredProfile();
-    fetchCityWeather(profile.city || 'Mumbai').then(setWeather);
-  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  const handleToggleMute = () => {
-    const nextMuted = audioEngine.toggleMute();
-    setIsMuted(nextMuted);
-  };
-
   // Hide full navbar inside active game to maximize immersion
   if (pathname === '/game' || pathname === '/hill-climb' || pathname === '/idol-shop' || pathname === '/temple-run') {
     return null;
   }
 
-  const navLinks = [
+  interface NavLinkItem {
+    name: string;
+    href: string;
+    icon: LucideIcon;
+    isAction?: boolean;
+  }
+
+  const middleNavLinks: NavLinkItem[] = [
     { name: 'ARCADE', href: '/arcade', icon: Sparkles, isAction: true },
     { name: 'TEMPLE RUN', href: '/temple-run', icon: Snowflake },
     { name: 'IDOL SHOP', href: '/idol-shop', icon: Palette },
     { name: 'HILL CLIMB', href: '/hill-climb', icon: Flame },
     { name: '3D RUNNER', href: '/game', icon: Play },
     { name: 'DASHBOARD', href: '/dashboard', icon: BarChart3 },
-    { name: 'LEADERBOARD', href: '/leaderboard', icon: Trophy },
-    { name: 'PROFILE', href: '/profile', icon: User }
+    { name: 'LEADERBOARD', href: '/leaderboard', icon: Trophy }
   ];
+
+  const profileLink: NavLinkItem = { name: 'PROFILE', href: '/profile', icon: User };
+  const allMobileNavLinks: NavLinkItem[] = [...middleNavLinks, profileLink];
 
   return (
     <nav style={{
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      background: 'rgba(8, 11, 20, 0.9)',
+      background: 'rgba(8, 11, 20, 0.94)',
       backdropFilter: 'blur(16px)',
       borderBottom: '1px solid rgba(255, 184, 0, 0.2)',
-      padding: '10px 16px'
+      padding: '10px clamp(12px, 1.6vw, 28px)',
+      width: '100%',
+      boxSizing: 'border-box'
     }}>
       <div style={{
-        maxWidth: 1200,
-        margin: '0 auto',
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 12
+        gap: 'clamp(8px, 1.2vw, 24px)'
       }}>
-        {/* Brand Logo */}
+        {/* 1. STARTING NAVBAR: Brand Logo */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <span style={{
-            fontSize: '1.6rem',
+            fontSize: '1.65rem',
             filter: 'drop-shadow(0 0 10px rgba(255, 184, 0, 0.5))'
           }}>
             🐘
@@ -77,8 +70,8 @@ export default function Navbar() {
             <div style={{
               fontFamily: 'var(--font-serif)',
               fontWeight: 800,
-              fontSize: '1.1rem',
-              letterSpacing: '1.2px',
+              fontSize: '1.12rem',
+              letterSpacing: '1.4px',
               background: 'linear-gradient(135deg, #FFE57F 0%, #FFB800 50%, #FF671F 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -88,7 +81,7 @@ export default function Navbar() {
             </div>
             <div style={{
               fontSize: '0.62rem',
-              letterSpacing: '1.5px',
+              letterSpacing: '1.6px',
               color: 'var(--text-muted)',
               textTransform: 'uppercase'
             }}>
@@ -97,13 +90,16 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Desktop Navigation items (visible on wider screens) */}
-        <div className="hidden-mobile" style={{
+        {/* 2. MIDDLE NAVBAR: End-to-End Expanded Nav Links */}
+        <div className="hidden-mobile desktop-nav-center" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 6
+          justifyContent: 'space-evenly',
+          flex: 1,
+          gap: 'clamp(4px, 0.8vw, 16px)',
+          margin: '0 clamp(6px, 1vw, 18px)'
         }}>
-          {navLinks.map((link) => {
+          {middleNavLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
 
@@ -114,12 +110,15 @@ export default function Navbar() {
                   href={link.href}
                   className="btn-primary"
                   style={{
-                    padding: '7px 16px',
-                    fontSize: '0.85rem',
-                    marginRight: 6
+                    padding: '7px clamp(12px, 1vw, 16px)',
+                    fontSize: 'clamp(0.76rem, 0.8vw, 0.84rem)',
+                    letterSpacing: '0.8px',
+                    gap: 6,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
                   }}
                 >
-                  <Icon size={15} />
+                  <Icon size={14} />
                   <span>{link.name}</span>
                 </Link>
               );
@@ -133,62 +132,56 @@ export default function Navbar() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  padding: '7px 12px',
+                  padding: '7px clamp(6px, 0.75vw, 12px)',
                   borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.5px',
+                  fontSize: 'clamp(0.76rem, 0.8vw, 0.84rem)',
+                  fontWeight: 700,
+                  letterSpacing: '0.6px',
                   color: isActive ? 'var(--gold-light)' : 'var(--text-muted)',
                   background: isActive ? 'rgba(255, 184, 0, 0.12)' : 'transparent',
                   border: isActive ? '1px solid var(--border-gold)' : '1px solid transparent',
                   transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0
                 }}
               >
-                <Icon size={15} />
+                <Icon size={14} />
                 <span>{link.name}</span>
               </Link>
             );
           })}
         </div>
 
-        {/* Right Controls: Weather + Mute + Mobile Menu Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {weather && (
-            <div className="hidden-mobile" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '5px 12px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: 'var(--radius-full)',
-              fontSize: '0.75rem',
-              color: 'var(--text-cream)',
-              whiteSpace: 'nowrap'
-            }}>
-              <CloudSun size={14} color="var(--gold-primary)" />
-              <span>{weather.city}: {weather.temp}°C</span>
-            </div>
-          )}
-
-          <button
-            onClick={handleToggleMute}
-            title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+        {/* 3. END OF NAVBAR: PROFILE Button & Mobile Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          {/* PROFILE placed at the very end of the desktop navbar */}
+          <Link
+            href="/profile"
+            className="hidden-mobile profile-desktop-btn"
             style={{
-              padding: 7,
-              borderRadius: 'var(--radius-full)',
-              background: isMuted ? 'rgba(230, 57, 70, 0.15)' : 'rgba(255, 184, 0, 0.15)',
-              border: `1px solid ${isMuted ? 'var(--vermilion)' : 'var(--border-gold)'}`,
-              color: isMuted ? 'var(--vermilion)' : 'var(--gold-primary)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
+              gap: 7,
+              padding: '7px clamp(12px, 1vw, 18px)',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 'clamp(0.76rem, 0.8vw, 0.84rem)',
+              fontWeight: 700,
+              letterSpacing: '0.8px',
+              color: pathname === '/profile' ? '#080B14' : 'var(--text-cream)',
+              background: pathname === '/profile'
+                ? 'linear-gradient(135deg, #FFE57F, #FFB800)'
+                : 'rgba(255, 255, 255, 0.06)',
+              border: pathname === '/profile'
+                ? '1px solid var(--gold-divine)'
+                : '1px solid rgba(255, 184, 0, 0.35)',
+              boxShadow: pathname === '/profile' ? '0 0 15px rgba(255, 184, 0, 0.4)' : 'none',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          </button>
+            <User size={15} color={pathname === '/profile' ? '#080B14' : 'var(--gold-primary)'} />
+            <span>PROFILE</span>
+          </Link>
 
           {/* Quick Play button on mobile header */}
           <Link
@@ -204,6 +197,7 @@ export default function Navbar() {
               color: '#080B14',
               fontWeight: 800,
               fontSize: '0.75rem',
+              letterSpacing: '0.8px',
               textTransform: 'uppercase'
             }}
           >
@@ -247,24 +241,7 @@ export default function Navbar() {
           gap: 8,
           animation: 'fadeIn 0.2s ease-out'
         }}>
-          {weather && (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 12px',
-              borderRadius: 10,
-              background: 'rgba(255, 255, 255, 0.04)',
-              fontSize: '0.8rem',
-              color: '#FFE57F',
-              marginBottom: 4
-            }}>
-              <CloudSun size={15} color="#FFB800" />
-              <span>{weather.city}: {weather.temp}°C ({weather.condition})</span>
-            </div>
-          )}
-
-          {navLinks.map((link) => {
+          {allMobileNavLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
 
@@ -281,7 +258,7 @@ export default function Navbar() {
                   borderRadius: 12,
                   fontSize: '0.9rem',
                   fontWeight: 700,
-                  letterSpacing: '0.5px',
+                  letterSpacing: '0.8px',
                   color: isActive ? '#080B14' : (link.isAction ? '#FFD700' : '#FFFFFF'),
                   background: isActive
                     ? 'linear-gradient(135deg, #FFB800, #FF671F)'
@@ -300,9 +277,9 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Embedded CSS for clean Mobile Breakpoints */}
+      {/* Embedded CSS for clean Breakpoints */}
       <style jsx>{`
-        @media (max-width: 860px) {
+        @media (max-width: 1200px) {
           .hidden-mobile {
             display: none !important;
           }

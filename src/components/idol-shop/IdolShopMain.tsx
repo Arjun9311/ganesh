@@ -70,7 +70,7 @@ export default function IdolShopMain() {
   const [isMuted, setIsMuted] = useState(false);
 
   // Vighnas & unlock progression
-  const [playerVighnas, setPlayerVighnas] = useState<number>(74);
+  const [playerVighnas, setPlayerVighnas] = useState<number>(0);
   const [unlockAllDevoteeMode, setUnlockAllDevoteeMode] = useState<boolean>(false);
 
   // Saved designs collection
@@ -96,7 +96,7 @@ export default function IdolShopMain() {
   useEffect(() => {
     setIsMuted(audioEngine.getMuted());
     const stats = getStoredPlayerStats();
-    setPlayerVighnas(stats.total_vighnas || 74);
+    setPlayerVighnas(stats.total_vighnas ?? 0);
 
     const designs = getSavedGaneshaDesigns();
     setSavedDesigns(designs);

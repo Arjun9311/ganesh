@@ -44,7 +44,7 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  const vighnaProgress = Math.min(stats?.total_vighnas || 74, 108);
+  const vighnaProgress = Math.min(stats?.total_vighnas ?? 0, 108);
   const progressPercent = Math.round((vighnaProgress / 108) * 100);
 
   return (
@@ -197,7 +197,7 @@ export default function ProfilePage() {
         <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIGHNAS DESTROYED</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 900, color: 'var(--gold-primary)', marginTop: 4 }}>
-            {stats?.total_vighnas || 74}
+            {stats?.total_vighnas ?? 0}
           </div>
         </div>
 

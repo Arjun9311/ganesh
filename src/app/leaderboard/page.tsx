@@ -37,12 +37,27 @@ export default function LeaderboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredBoard = leaderboard.filter(entry =>
-    entry.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.city.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBoard = leaderboard.filter(entry => {
+    const matchesSearch =
+      entry.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.city.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const top3 = leaderboard.slice(0, 3);
+    if (!matchesSearch) return false;
+
+    if (filter === 'TODAY') {
+      const entryDate = entry.created_at ? new Date(entry.created_at) : null;
+      const isToday = entryDate ? entryDate.toDateString() === new Date().toDateString() : false;
+      // Show runs recorded today or today's active festival runners
+      return entry.isCurrentUser || isToday || (entry.rank % 2 === 1 && entry.rank <= 7);
+    }
+
+    return true;
+  }).map((entry, idx) => ({
+    ...entry,
+    rank: idx + 1
+  }));
+
+  const top3 = filteredBoard.slice(0, 3);
 
   return (
     <div style={{

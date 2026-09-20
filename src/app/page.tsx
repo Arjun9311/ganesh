@@ -1,18 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Play, Trophy, Sparkles, Zap, Shield, ChevronRight, Flame, CloudSun, Palette } from 'lucide-react';
-import { fetchCityWeather } from '@/lib/weather';
-import { WeatherCondition } from '@/types/game';
+import { Play, Trophy, Sparkles, Zap, Shield, ChevronRight, Flame, Palette } from 'lucide-react';
 
 export default function LandingPage() {
-  const [weather, setWeather] = useState<WeatherCondition | null>(null);
-
-  useEffect(() => {
-    fetchCityWeather('Mumbai').then(setWeather);
-  }, []);
-
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Hero Section */}
@@ -27,36 +19,113 @@ export default function LandingPage() {
         overflow: 'hidden',
         background: 'radial-gradient(circle at 50% 30%, rgba(255, 103, 31, 0.18) 0%, rgba(8, 11, 20, 0.95) 75%)'
       }}>
-        {/* Floating background festival ambient effects */}
+        {/* Floating background festival ambient effects & animatics */}
         <div style={{
           position: 'absolute',
-          top: '15%',
-          left: '10%',
-          fontSize: '2rem',
-          opacity: 0.25,
-          animation: 'floatSlow 5s ease-in-out infinite'
+          top: '12%',
+          left: '8%',
+          fontSize: '2.2rem',
+          opacity: 0.3,
+          pointerEvents: 'none',
+          animation: 'floatSlow 4.5s ease-in-out infinite'
         }}>
           🪔
         </div>
         <div style={{
           position: 'absolute',
-          top: '25%',
-          right: '12%',
-          fontSize: '2.4rem',
-          opacity: 0.25,
-          animation: 'floatSlow 4s ease-in-out infinite'
+          top: '20%',
+          right: '10%',
+          fontSize: '2.5rem',
+          opacity: 0.3,
+          pointerEvents: 'none',
+          animation: 'floatSlow 5.5s ease-in-out infinite',
+          animationDelay: '-2s'
         }}>
           🍬
         </div>
         <div style={{
           position: 'absolute',
-          bottom: '20%',
-          left: '18%',
-          fontSize: '2rem',
-          opacity: 0.2,
-          animation: 'floatSlow 6s ease-in-out infinite'
+          bottom: '18%',
+          left: '12%',
+          fontSize: '2.2rem',
+          opacity: 0.25,
+          pointerEvents: 'none',
+          animation: 'floatSlow 6s ease-in-out infinite',
+          animationDelay: '-3.5s'
         }}>
           🌺
+        </div>
+        <div style={{
+          position: 'absolute',
+          bottom: '22%',
+          right: '14%',
+          fontSize: '2rem',
+          opacity: 0.28,
+          pointerEvents: 'none',
+          animation: 'floatSlow 5s ease-in-out infinite',
+          animationDelay: '-1.5s'
+        }}>
+          🔔
+        </div>
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '4%',
+          fontSize: '1.6rem',
+          opacity: 0.35,
+          pointerEvents: 'none',
+          animation: 'floatSlow 4s ease-in-out infinite',
+          animationDelay: '-1s'
+        }}>
+          ✨
+        </div>
+        <div style={{
+          position: 'absolute',
+          top: '45%',
+          right: '5%',
+          fontSize: '1.8rem',
+          opacity: 0.35,
+          pointerEvents: 'none',
+          animation: 'floatSlow 4.8s ease-in-out infinite',
+          animationDelay: '-2.5s'
+        }}>
+          🪔
+        </div>
+
+        {/* Majestic Rotating Sacred Mandala / Sun Halo Background Animatic */}
+        <div style={{
+          position: 'absolute',
+          top: '48%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 'clamp(340px, 50vw, 680px)',
+          height: 'clamp(340px, 50vw, 680px)',
+          pointerEvents: 'none',
+          opacity: 0.14,
+          zIndex: 1
+        }}>
+          <svg
+            viewBox="0 0 200 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{
+              width: '100%',
+              height: '100%',
+              animation: 'spinAura 60s linear infinite',
+              transformOrigin: 'center'
+            }}
+          >
+            <circle cx="100" cy="100" r="90" stroke="#FFD700" strokeWidth="1" strokeDasharray="4 4" />
+            <circle cx="100" cy="100" r="80" stroke="#FFB800" strokeWidth="1.5" />
+            <circle cx="100" cy="100" r="68" stroke="#FF671F" strokeWidth="1" strokeDasharray="6 3" />
+            <circle cx="100" cy="100" r="50" stroke="#FFD700" strokeWidth="2" opacity="0.8" />
+            {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
+              <g key={deg} transform={`rotate(${deg} 100 100)`}>
+                <line x1="100" y1="12" x2="100" y2="28" stroke="#FFB800" strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="100" cy="34" r="2.5" fill="#FFD700" />
+              </g>
+            ))}
+          </svg>
         </div>
 
         <div style={{
@@ -65,7 +134,7 @@ export default function LandingPage() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 24
+          gap: 20
         }}>
           {/* Badge */}
           <div style={{
@@ -83,20 +152,15 @@ export default function LandingPage() {
           }}>
             <Sparkles size={16} color="var(--gold-primary)" />
             <span>THE 108 VIGHNAS FESTIVAL RUNNER</span>
-            {weather && (
-              <span style={{ color: 'var(--saffron-light)', borderLeft: '1px solid rgba(255, 255, 255, 0.2)', paddingLeft: 8 }}>
-                {weather.city} {weather.temp}°C
-              </span>
-            )}
           </div>
 
-          {/* Main Hero Heading */}
+          {/* Main Hero Heading with Balanced Font Size */}
           <h1 style={{
             fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(2.8rem, 6vw, 4.8rem)',
+            fontSize: 'clamp(1.85rem, 3.6vw, 3.1rem)',
             fontWeight: 900,
-            lineHeight: 1.1,
-            letterSpacing: '1px'
+            lineHeight: 1.22,
+            letterSpacing: '1.2px'
           }}>
             <span className="text-divine-gradient">DON&apos;T AVOID THE OBSTACLES.</span>
             <br />

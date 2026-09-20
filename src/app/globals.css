@@ -53,7 +53,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+body {
   width: 100%;
   min-height: 100%;
   min-height: 100dvh;
@@ -61,9 +69,8 @@ html, body {
   color: var(--text-cream);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  overflow-y: visible;
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior-y: none;
-  overscroll-behavior-x: none;
 }
 
 /* Prevent unwanted pull-to-refresh and selection during gaming on mobile */
@@ -79,6 +86,7 @@ html, body {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  overscroll-behavior: none;
 }
 
 a {

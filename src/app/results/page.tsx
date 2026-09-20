@@ -23,11 +23,18 @@ export default function ResultsPage() {
   }, []);
 
   const score = lastSession?.score || 12450;
-  const vighnas = lastSession?.vighnas_destroyed || 74;
+  const vighnas = lastSession?.vighnas_destroyed ?? 74;
   const distance = lastSession?.distance || 3800;
-  const modaks = lastSession?.modaks_collected || 103;
+  const modaks = lastSession?.modaks_collected ?? 103;
   const combo = lastSession?.max_combo || 8;
   const username = profile?.username || 'Arjun Devotee';
+  const isPersonalBest = Boolean(lastSession && stats?.best_score && lastSession.score >= stats.best_score);
+
+  const getRunAgainHref = () => {
+    if (lastSession?.game_mode === 'temple_run') return '/temple-run';
+    if (lastSession?.game_mode === 'hillclimb') return '/hill-climb';
+    return '/game';
+  };
 
   const shareText = `🐘 VIGHNAHARTA RUN — THE 108 VIGHNAS\n\nRunner: ${username}\nScore: ${score.toLocaleString()}\nVighnas Removed: ${vighnas} / 108\nDistance: ${(distance / 1000).toFixed(2)} KM\nBest Combo: x${combo}\n\nDon't avoid obstacles. Remove them! 🙏`;
 
@@ -127,18 +134,24 @@ export default function ResultsPage() {
             }}>
               {score.toLocaleString()}
             </div>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: '0.78rem',
-              color: '#10B981',
-              fontWeight: 700,
-              marginTop: 4
-            }}>
-              <ArrowUpRight size={16} />
-              <span>NEW PERSONAL BEST!</span>
-            </div>
+            {isPersonalBest ? (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: '0.78rem',
+                color: '#10B981',
+                fontWeight: 700,
+                marginTop: 4
+              }}>
+                <ArrowUpRight size={16} />
+                <span>NEW PERSONAL BEST!</span>
+              </div>
+            ) : (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                Personal Best: <strong style={{ color: 'var(--gold-primary)' }}>{(stats?.best_score || 12450).toLocaleString()}</strong>
+              </div>
+            )}
           </div>
 
           {/* Stats Grid */}
@@ -235,7 +248,7 @@ export default function ResultsPage() {
           </div>
 
           <Link
-            href="/game"
+            href={getRunAgainHref()}
             className="btn-secondary"
             style={{
               padding: '14px 20px',

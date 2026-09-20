@@ -2,12 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
+import DivineBackground from '@/components/ui/DivineBackground';
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#080B14',
 };
@@ -31,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <DivineBackground />
         <Navbar />
         <main>{children}</main>
         <MobileBottomNav />

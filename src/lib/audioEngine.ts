@@ -19,6 +19,14 @@ class AudioEngine {
       if (storedMute !== null) {
         this.isMuted = storedMute === 'true';
       }
+
+      // Automatically unlock Web Audio API on first user gesture across mobile and desktop
+      const unlockAudio = () => {
+        this.initContext();
+      };
+      window.addEventListener('pointerdown', unlockAudio, { once: true });
+      window.addEventListener('keydown', unlockAudio, { once: true });
+      window.addEventListener('touchstart', unlockAudio, { once: true });
     }
   }
 
