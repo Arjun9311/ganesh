@@ -41,6 +41,7 @@ export interface ActiveCollectible {
 
 export interface ActiveSegment {
   id: string;
+  seqIndex: number;
   isCorner: boolean;
   turnCompleted?: boolean;
   turnDirection?: 'left' | 'right';
@@ -96,20 +97,36 @@ export class TempleTrackManager {
   }
 
   public update(playerPos: THREE.Vector3, vighnasDestroyed: number) {
-    // 1. Recycle segments that are safely behind the player
-    // Keep at least 4 segments around/behind Ganesha for seamless visuals
+    // Determine player's closest active segment index in the buffer
+    let closestIndex = 0;
+    let closestDistSq = Infinity;
+    for (let i = 0; i < this.segments.length; i++) {
+      const seg = this.segments[i];
+      const mid = seg.isCorner && seg.turnPivot
+        ? seg.turnPivot
+        : seg.startPos.clone().add(seg.endPos).multiplyScalar(0.5);
+      const dSq = playerPos.distanceToSquared(mid);
+      if (dSq < closestDistSq) {
+        closestDistSq = dSq;
+        closestIndex = i;
+      }
+    }
+
+    // 1. Recycle segments safely behind the player
+    // Keep at least 4 segments around/behind Ganesha for visual continuity
     while (this.segments.length > 4) {
       const oldest = this.segments[0];
-      if (this.isPastSegment(playerPos, oldest)) {
+      if (this.isPastSegment(playerPos, oldest, closestIndex)) {
+        this.disposeSegmentGroup(oldest.threeGroup);
         this.scene.remove(oldest.threeGroup);
         this.segments.shift();
+        closestIndex = Math.max(0, closestIndex - 1);
       } else {
         break;
       }
     }
 
-    // 2. Continuous lookahead generation: strictly maintain maxActiveSegments (16 segments = 384m!)
-    // Strictly bounded, instantaneous (<0.1ms), and cannot deadlock or infinite loop!
+    // 2. Continuous lookahead generation: strictly maintain maxActiveSegments (16 segments = 384m)
     while (this.segments.length < TRACK_CONFIG.maxActiveSegments) {
       this.spawnNextSegment(vighnasDestroyed);
     }
@@ -200,8 +217,10 @@ export class TempleTrackManager {
     const trackMesh = createTrackSegmentMesh(worldId, length);
     segGroup.add(trackMesh);
 
+    const seqIndex = this.totalSegmentsSpawned++;
     const segment: ActiveSegment = {
-      id: `seg_${this.totalSegmentsSpawned++}`,
+      id: `seg_${seqIndex}`,
+      seqIndex,
       isCorner: false,
       turnCompleted: false,
       incomingHeading: this.currentHeading,
@@ -240,8 +259,10 @@ export class TempleTrackManager {
     cornerGroup.position.copy(turnPivot);
     cornerGroup.rotation.y = incomingYaw;
 
+    const seqIndex = this.totalSegmentsSpawned++;
     const segment: ActiveSegment = {
-      id: `corner_${this.totalSegmentsSpawned++}`,
+      id: `corner_${seqIndex}`,
+      seqIndex,
       isCorner: true,
       turnCompleted: false,
       turnDirection: turn,
@@ -481,35 +502,62 @@ export class TempleTrackManager {
     }
   }
 
-  private isPastSegment(playerPos: THREE.Vector3, segment: ActiveSegment): boolean {
-    // 1. Completed corner junction: recycle once player is past the turn pivot
-    if (segment.isCorner && segment.turnCompleted && segment.turnPivot) {
-      const exitDir = CARDINAL_DIRECTIONS[segment.exitHeading];
-      const fromPivot = playerPos.clone().sub(segment.turnPivot);
-      const progressOnExit = fromPivot.dot(exitDir);
-      if (progressOnExit > 10.0 || playerPos.distanceTo(segment.turnPivot) > 16.0) {
+  private disposeSegmentGroup(group: THREE.Group) {
+    // Clear out children from GPU memory bindings
+    group.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        // Shared geometries/materials are reused, but we clear parent links
+        obj.geometry = undefined as unknown as THREE.BufferGeometry;
+      }
+    });
+    while (group.children.length > 0) {
+      group.remove(group.children[0]);
+    }
+  }
+
+  private isPastSegment(playerPos: THREE.Vector3, segment: ActiveSegment, playerActiveIndex: number): boolean {
+    // 1. Sequential Index Guarantee:
+    // If the player is currently at or beyond index 3 in the buffer, index 0 is guaranteed to be behind!
+    const segBufferIndex = this.segments.indexOf(segment);
+    if (segBufferIndex !== -1 && playerActiveIndex - segBufferIndex >= 3) {
+      return true;
+    }
+
+    // 2. Completed corner junction: recycle once player is past the turn pivot
+    if (segment.isCorner && segment.turnPivot) {
+      if (segment.turnCompleted) {
+        const exitDir = CARDINAL_DIRECTIONS[segment.exitHeading];
+        const fromPivot = playerPos.clone().sub(segment.turnPivot);
+        const progressOnExit = fromPivot.dot(exitDir);
+        if (progressOnExit > 6.0 || playerPos.distanceTo(segment.turnPivot) > 12.0) {
+          return true;
+        }
+      }
+      // Safety distance fallback for corners regardless of turnCompleted
+      if (playerPos.distanceTo(segment.turnPivot) > 28.0) {
         return true;
       }
       return false;
     }
 
-    // 2. Measure progress along this segment's own incoming heading
+    // 3. Measure progress along this segment's own incoming heading
     const dir = CARDINAL_DIRECTIONS[segment.incomingHeading];
     const fromStart = playerPos.clone().sub(segment.startPos);
     const progressAlongAxis = fromStart.dot(dir);
 
-    // If player has moved past this segment's length (+ buffer into next segments)
-    if (progressAlongAxis > (TRACK_CONFIG.segmentLength + 8.0)) {
+    // If player has moved past this segment's length
+    if (progressAlongAxis > (TRACK_CONFIG.segmentLength + 4.0)) {
       return true;
     }
 
-    // 3. Fallback: if player has traveled into subsequent segments and 3D distance is large
-    if (progressAlongAxis > 0 && playerPos.distanceTo(segment.endPos) > 30.0) {
+    // 4. If player has traveled past endPos along axis
+    const fromEnd = playerPos.clone().sub(segment.endPos);
+    if (fromEnd.dot(dir) > 2.0) {
       return true;
     }
 
-    // 4. Safe distance fallback: if player is far from both start and end
-    if (playerPos.distanceTo(segment.endPos) > 45.0 && playerPos.distanceTo(segment.startPos) > 45.0) {
+    // 5. Safe distance fallback: if player has traveled far from segment start or end
+    if (playerPos.distanceTo(segment.endPos) > 35.0 && playerPos.distanceTo(segment.startPos) > 35.0) {
       return true;
     }
 

@@ -216,50 +216,50 @@ export default function TempleRunCanvas() {
   };
 
   // Actions
-  const handleStart = () => {
+  const handleStart = useCallback(() => {
     audioEngine.playClick();
     setGameState('RUNNING');
     engineRef.current?.start();
-  };
+  }, []);
 
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     audioEngine.playClick();
     setGameState('PAUSED');
     engineRef.current?.pause();
-  };
+  }, []);
 
-  const handleResume = () => {
+  const handleResume = useCallback(() => {
     audioEngine.playClick();
     setGameState('RUNNING');
     engineRef.current?.resume();
-  };
+  }, []);
 
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     audioEngine.playClick();
     setGameState('RUNNING');
     engineRef.current?.restart();
-  };
+  }, []);
 
-  const handleToggleMute = () => {
+  const handleToggleMute = useCallback(() => {
     const next = audioEngine.toggleMute();
     setIsMuted(next);
-  };
+  }, []);
 
-  const handleReviveConfirm = () => {
+  const handleReviveConfirm = useCallback(() => {
     if (reviveResolverRef.current) {
       reviveResolverRef.current(true);
       reviveResolverRef.current = null;
     }
     setGameState('RUNNING');
-  };
+  }, []);
 
-  const handleReviveDecline = () => {
+  const handleReviveDecline = useCallback(() => {
     if (reviveResolverRef.current) {
       reviveResolverRef.current(false);
       reviveResolverRef.current = null;
     }
     setGameState('GAME_OVER');
-  };
+  }, []);
 
   return (
     <div

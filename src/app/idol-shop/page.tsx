@@ -5,9 +5,9 @@ import IdolShopMain from '@/components/idol-shop/IdolShopMain';
 
 export default function IdolShopPage() {
   return (
-    <main style={{ minHeight: '100vh', width: '100%' }}>
+    <div style={{ minHeight: '100vh', width: '100%' }}>
       <IdolShopMain />
-    </main>
+    </div>
   );
 }
 

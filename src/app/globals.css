@@ -264,10 +264,38 @@ button {
 @media (max-width: 900px) {
   .idol-shop-container {
     grid-template-columns: 1fr !important;
+    padding: 12px 14px !important;
+    gap: 16px !important;
   }
   .idol-preview-section {
     position: relative !important;
     top: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .idol-shop-header {
+    padding: 10px 14px !important;
+    gap: 8px !important;
+  }
+  .idol-shop-header-title {
+    font-size: 16px !important;
+  }
+  .idol-preview-card {
+    min-height: clamp(260px, 42vh, 360px) !important;
+    padding: 16px 12px 14px !important;
+  }
+  .idol-preview-stage {
+    height: clamp(220px, 34vh, 320px) !important;
+  }
+  .idol-floating-preview-pill {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .idol-floating-preview-pill {
+    display: none !important;
   }
 }
 

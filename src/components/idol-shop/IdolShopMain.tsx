@@ -87,6 +87,7 @@ export default function IdolShopMain() {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dragStartX = useRef<number>(0);
   const dragStartRot = useRef<number>(0);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // Save Modal state
   const [isNamingModalOpen, setIsNamingModalOpen] = useState<boolean>(false);
@@ -367,10 +368,11 @@ export default function IdolShopMain() {
 
       {/* TOP HEADER BAR */}
       <header
+        className="idol-shop-header"
         style={{
-          padding: '14px 24px',
+          padding: '12px 20px',
           borderBottom: '1px solid rgba(255, 184, 0, 0.2)',
-          background: 'rgba(8, 11, 20, 0.85)',
+          background: 'rgba(8, 11, 20, 0.88)',
           backdropFilter: 'blur(12px)',
           position: 'sticky',
           top: 0,
@@ -379,10 +381,10 @@ export default function IdolShopMain() {
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: 12
+          gap: 10
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <Link
             href="/arcade"
             style={{
@@ -406,9 +408,10 @@ export default function IdolShopMain() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 22 }}>🐘</span>
               <h1
+                className="idol-shop-header-title"
                 style={{
                   fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(18px, 4vw, 24px)',
+                  fontSize: 'clamp(17px, 3.5vw, 24px)',
                   fontWeight: 900,
                   background: 'linear-gradient(135deg, #FFF7ED 0%, #FFD700 50%, #FF671F 100%)',
                   WebkitBackgroundClip: 'text',
@@ -534,10 +537,11 @@ export default function IdolShopMain() {
         >
           {/* Main Display Card */}
           <div
-            className="glass-card-gold"
+            ref={previewRef}
+            className="glass-card-gold idol-preview-card"
             style={{
               borderRadius: 28,
-              padding: '24px 16px 20px',
+              padding: '20px 16px 16px',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -546,13 +550,15 @@ export default function IdolShopMain() {
               background: 'linear-gradient(180deg, rgba(26, 32, 54, 0.9) 0%, rgba(12, 16, 32, 0.95) 100%)',
               border: '2px solid rgba(255, 184, 0, 0.4)',
               boxShadow: '0 25px 50px rgba(0,0,0,0.7), 0 0 35px rgba(255, 184, 0, 0.15)',
-              minHeight: 460,
+              minHeight: 380,
               cursor: isDragging ? 'grabbing' : 'grab',
-              userSelect: 'none'
+              userSelect: 'none',
+              touchAction: 'pan-y'
             }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
           >
             {/* Top Badge: Sanskrit Blessing */}
             <div
@@ -590,7 +596,17 @@ export default function IdolShopMain() {
             </div>
 
             {/* SVG Ganesha Idol Renderer */}
-            <div style={{ width: '100%', maxWidth: 420, height: 420, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div
+              className="idol-preview-stage"
+              style={{
+                width: '100%',
+                maxWidth: 420,
+                height: 380,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
               <GaneshaIdolRenderer
                 config={config}
                 rotation={rotation}
@@ -686,8 +702,8 @@ export default function IdolShopMain() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-              gap: 10,
+              gridTemplateColumns: 'repeat(auto-fit, minmax(105px, 1fr))',
+              gap: 8,
               width: '100%'
             }}
           >
@@ -1302,8 +1318,8 @@ export default function IdolShopMain() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 12,
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: 10,
                 width: '100%',
                 marginTop: 6
               }}
@@ -1632,6 +1648,35 @@ export default function IdolShopMain() {
           </div>
         </div>
       )}
+      {/* Mobile Floating Quick Preview Pill */}
+      <button
+        onClick={() => {
+          previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }}
+        className="idol-floating-preview-pill"
+        style={{
+          position: 'fixed',
+          bottom: 82,
+          right: 16,
+          zIndex: 44,
+          borderRadius: 9999,
+          background: 'linear-gradient(135deg, #FFB800 0%, #FF671F 100%)',
+          color: '#080B14',
+          border: '1.5px solid #FFD700',
+          boxShadow: '0 8px 24px rgba(255, 184, 0, 0.45)',
+          padding: '10px 16px',
+          fontWeight: 900,
+          fontSize: 12,
+          letterSpacing: 0.8,
+          alignItems: 'center',
+          gap: 6,
+          cursor: 'pointer'
+        }}
+        aria-label="Scroll up to view Ganesha idol preview"
+      >
+        <Sparkles size={14} color="#080B14" />
+        <span>VIEW IDOL</span>
+      </button>
     </div>
   );
 }

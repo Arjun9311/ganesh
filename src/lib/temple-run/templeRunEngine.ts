@@ -89,6 +89,7 @@ export class TempleRunEngine {
   private isPaused: boolean = false;
   private animFrameId: number | null = null;
   private lastTime: number = 0;
+  private lastStatsUpdateTime: number = 0;
 
   // Turn prompt & queued turn buffer
   private queuedTurn: 'left' | 'right' | null = null;
@@ -451,11 +452,14 @@ export class TempleRunEngine {
     const delta = Math.min((now - this.lastTime) / 1000, 0.1);
     this.lastTime = now;
 
-    if (!this.isPaused && !this.stats.isGameOver) {
-      this.update(delta);
+    try {
+      if (!this.isPaused && !this.stats.isGameOver) {
+        this.update(delta);
+      }
+      this.render();
+    } catch (err) {
+      console.error('TempleRun animation error caught:', err);
     }
-
-    this.render();
   };
 
   private update(delta: number) {
@@ -573,8 +577,17 @@ export class TempleRunEngine {
       this.triggerVictory();
     }
 
-    // Notify HUD
-    this.callbacks.onStatsUpdate?.(this.stats, this.powerups, this.turnPrompt);
+    // Notify HUD (Throttled to ~15 Hz or on important gameplay events to eliminate React state flood)
+    const nowMs = performance.now();
+    if (
+      nowMs - this.lastStatsUpdateTime > 65 ||
+      this.stats.isGameOver ||
+      this.stats.isVictory ||
+      this.turnPrompt.canTurnNow
+    ) {
+      this.lastStatsUpdateTime = nowMs;
+      this.callbacks.onStatsUpdate?.(this.stats, this.powerups, this.turnPrompt);
+    }
   }
 
   private updateSnowParticles(delta: number, centerPos: THREE.Vector3, forwardDir: THREE.Vector3) {
@@ -639,6 +652,8 @@ export class TempleRunEngine {
       this.position.copy(corner.turnPivot);
       this.currentHeading = corner.exitHeading;
       this.targetCameraYaw = CARDINAL_YAW[this.currentHeading];
+      this.targetLane = 0;
+      this.currentLaneOffset = 0;
     }
   }
 
@@ -652,8 +667,11 @@ export class TempleRunEngine {
     collectibles.forEach(col => {
       const dist = charPos.distanceTo(col.position);
       // Magnet attraction
-      if (this.powerups.hasMagnet && dist < 6.5) {
-        col.mesh.position.lerp(charPos, 0.22);
+      if (this.powerups.hasMagnet && dist < 6.5 && !col.isCollected) {
+        col.position.lerp(charPos, 0.22);
+        if (col.mesh.parent) {
+          col.mesh.position.copy(col.mesh.parent.worldToLocal(col.position.clone()));
+        }
       }
 
       if (dist < 1.4) {
